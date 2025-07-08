@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,102 +38,155 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-// Mock data for payments
-const mockPayments = [
-  {
-    id: 1,
-    customer: "John Doe",
-    phone: "+254712345678",
-    amount: 250,
-    package: "10 Mbps",
-    method: "M-Pesa",
-    transactionId: "QGX1234567",
-    date: "2024-06-15",
-    time: "14:30",
-    status: "completed"
-  },
-  {
-    id: 2,
-    customer: "Sarah Wilson",
-    phone: "+254723456789",
-    amount: 400,
-    package: "20 Mbps",
-    method: "Airtel Money",
-    transactionId: "ATM9876543",
-    date: "2024-06-14",
-    time: "10:15",
-    status: "completed"
-  },
-  {
-    id: 3,
-    customer: "Mike Johnson",
-    phone: "+254734567890",
-    amount: 150,
-    package: "5 Mbps",
-    method: "Bank Transfer",
-    transactionId: "BNK5555555",
-    date: "2024-06-13",
-    time: "16:45",
-    status: "pending"
-  },
-  {
-    id: 4,
-    customer: "Emma Davis",
-    phone: "+254745678901",
-    amount: 800,
-    package: "50 Mbps",
-    method: "M-Pesa",
-    transactionId: "QGX7777777",
-    date: "2024-06-12",
-    time: "09:20",
-    status: "completed"
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const PaymentTracking = () => {
-  const [payments, setPayments] = useState(mockPayments);
+  const [payments, setPayments] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [packages, setPackages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const [newPayment, setNewPayment] = useState({
-    customer: "",
-    phone: "",
+    customer_id: "",
     amount: "",
-    package: "",
-    method: "",
-    transactionId: ""
+    payment_method: "",
+    transaction_id: ""
   });
+
+  useEffect(() => {
+    fetchPayments();
+    fetchCustomers();
+    fetchPackages();
+  }, []);
+
+  const fetchPayments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          customers (name, phone)
+        `)
+        .order('payment_date', { ascending: false });
+
+      if (error) throw error;
+
+      const processedPayments = data?.map(payment => ({
+        ...payment,
+        amount: Number(payment.amount),
+        customer: payment.customers?.name || 'Unknown',
+        phone: payment.customers?.phone || '',
+        date: new Date(payment.payment_date).toLocaleDateString(),
+        time: new Date(payment.payment_date).toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })
+      })) || [];
+
+      setPayments(processedPayments);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch payments",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, phone')
+        .eq('status', 'active');
+
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    }
+  };
+
+  const fetchPackages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .select('id, name, speed')
+        .eq('status', 'active');
+
+      if (error) throw error;
+      setPackages(data || []);
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+    }
+  };
 
   const filteredPayments = payments.filter(payment => {
     const matchesSearch = payment.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment.phone.includes(searchTerm) ||
-                         payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase());
+                         payment.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = filterStatus === "all" || payment.status === filterStatus;
     
     return matchesSearch && matchesFilter;
   });
 
-  const handleAddPayment = () => {
-    const payment = {
-      id: payments.length + 1,
-      ...newPayment,
-      amount: parseInt(newPayment.amount),
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-      status: "completed"
-    };
-    
-    setPayments([...payments, payment]);
-    setNewPayment({ customer: "", phone: "", amount: "", package: "", method: "", transactionId: "" });
-    setIsAddDialogOpen(false);
+  const handleAddPayment = async () => {
+    try {
+      // Get customer phone number for the payment
+      const customer = customers.find(c => c.id === newPayment.customer_id);
+      
+      const { error } = await supabase
+        .from('payments')
+        .insert([{
+          customer_id: newPayment.customer_id,
+          amount: parseFloat(newPayment.amount),
+          payment_method: newPayment.payment_method,
+          transaction_id: newPayment.transaction_id,
+          phone_number: customer?.phone,
+          status: 'completed'
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Payment recorded successfully",
+      });
+
+      setNewPayment({ customer_id: "", amount: "", payment_method: "", transaction_id: "" });
+      setIsAddDialogOpen(false);
+      fetchPayments(); // Refresh the list
+    } catch (error) {
+      console.error('Error adding payment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to record payment",
+        variant: "destructive",
+      });
+    }
   };
 
   const totalRevenue = payments.reduce((sum, payment) => sum + payment.amount, 0);
   const completedPayments = payments.filter(p => p.status === "completed").length;
   const pendingPayments = payments.filter(p => p.status === "pending").length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading payments...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -157,21 +210,18 @@ export const PaymentTracking = () => {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="customer" className="text-right">Customer</Label>
-                <Input
-                  id="customer"
-                  value={newPayment.customer}
-                  onChange={(e) => setNewPayment({ ...newPayment, customer: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">Phone</Label>
-                <Input
-                  id="phone"
-                  value={newPayment.phone}
-                  onChange={(e) => setNewPayment({ ...newPayment, phone: e.target.value })}
-                  className="col-span-3"
-                />
+                <Select onValueChange={(value) => setNewPayment({ ...newPayment, customer_id: value })}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name} - {customer.phone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="amount" className="text-right">Amount</Label>
@@ -184,22 +234,8 @@ export const PaymentTracking = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="package" className="text-right">Package</Label>
-                <Select onValueChange={(value) => setNewPayment({ ...newPayment, package: value })}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select package" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5 Mbps">5 Mbps</SelectItem>
-                    <SelectItem value="10 Mbps">10 Mbps</SelectItem>
-                    <SelectItem value="20 Mbps">20 Mbps</SelectItem>
-                    <SelectItem value="50 Mbps">50 Mbps</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="method" className="text-right">Method</Label>
-                <Select onValueChange={(value) => setNewPayment({ ...newPayment, method: value })}>
+                <Select onValueChange={(value) => setNewPayment({ ...newPayment, payment_method: value })}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Payment method" />
                   </SelectTrigger>
@@ -215,8 +251,8 @@ export const PaymentTracking = () => {
                 <Label htmlFor="transactionId" className="text-right">Transaction ID</Label>
                 <Input
                   id="transactionId"
-                  value={newPayment.transactionId}
-                  onChange={(e) => setNewPayment({ ...newPayment, transactionId: e.target.value })}
+                  value={newPayment.transaction_id}
+                  onChange={(e) => setNewPayment({ ...newPayment, transaction_id: e.target.value })}
                   className="col-span-3"
                 />
               </div>
@@ -271,7 +307,9 @@ export const PaymentTracking = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg. Payment</p>
-                <p className="text-2xl font-bold">${Math.round(totalRevenue / payments.length)}</p>
+                <p className="text-2xl font-bold">
+                  ${payments.length > 0 ? Math.round(totalRevenue / payments.length) : 0}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-600" />
             </div>
@@ -315,7 +353,6 @@ export const PaymentTracking = () => {
               <TableRow>
                 <TableHead>Customer</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>Package</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Method</TableHead>
                 <TableHead>Transaction ID</TableHead>
@@ -328,15 +365,12 @@ export const PaymentTracking = () => {
                 <TableRow key={payment.id}>
                   <TableCell className="font-medium">{payment.customer}</TableCell>
                   <TableCell>{payment.phone}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{payment.package}</Badge>
-                  </TableCell>
                   <TableCell className="font-bold text-green-600">
                     ${payment.amount}
                   </TableCell>
-                  <TableCell>{payment.method}</TableCell>
+                  <TableCell>{payment.payment_method}</TableCell>
                   <TableCell className="font-mono text-sm">
-                    {payment.transactionId}
+                    {payment.transaction_id}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
@@ -355,6 +389,14 @@ export const PaymentTracking = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {filteredPayments.length === 0 && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <p className="text-gray-500">No payments found matching your criteria.</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

@@ -14,7 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      connectivity_logs: {
+        Row: {
+          checked_at: string
+          customer_id: string | null
+          id: string
+          notes: string | null
+          response_time: number | null
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          response_time?: number | null
+          status: string
+        }
+        Update: {
+          checked_at?: string
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          response_time?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connectivity_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_packages: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean
+          package_id: string | null
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          package_id?: string | null
+          start_date?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          package_id?: string | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_packages_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_packages_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          gps_location: string | null
+          id: string
+          installation_date: string
+          name: string
+          phone: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          gps_location?: string | null
+          id?: string
+          installation_date?: string
+          name: string
+          phone: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          gps_location?: string | null
+          id?: string
+          installation_date?: string
+          name?: string
+          phone?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      packages: {
+        Row: {
+          bandwidth_cap: number | null
+          created_at: string
+          features: string[] | null
+          id: string
+          name: string
+          price: number
+          speed: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bandwidth_cap?: number | null
+          created_at?: string
+          features?: string[] | null
+          id?: string
+          name: string
+          price: number
+          speed: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bandwidth_cap?: number | null
+          created_at?: string
+          features?: string[] | null
+          id?: string
+          name?: string
+          price?: number
+          speed?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string | null
+          id: string
+          payment_date: string
+          payment_method: string
+          phone_number: string | null
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          payment_date?: string
+          payment_method: string
+          phone_number?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          payment_date?: string
+          payment_method?: string
+          phone_number?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_notifications: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          message: string
+          phone_number: string
+          sent_at: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          message: string
+          phone_number: string
+          sent_at?: string | null
+          status?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          message?: string
+          phone_number?: string
+          sent_at?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_notifications_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          customer_id: string | null
+          description: string | null
+          id: string
+          priority: string
+          resolved_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

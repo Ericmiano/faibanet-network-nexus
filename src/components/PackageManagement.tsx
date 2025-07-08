@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,51 +16,14 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-// Mock data for packages
-const mockPackages = [
-  {
-    id: 1,
-    name: "Basic Home",
-    speed: "5 Mbps",
-    price: 150,
-    features: ["5 Mbps Download", "1 Mbps Upload", "Unlimited Data", "24/7 Support"],
-    customers: 120,
-    status: "active"
-  },
-  {
-    id: 2,
-    name: "Standard Home",
-    speed: "10 Mbps",
-    price: 250,
-    features: ["10 Mbps Download", "2 Mbps Upload", "Unlimited Data", "24/7 Support", "Free Router"],
-    customers: 85,
-    status: "active"
-  },
-  {
-    id: 3,
-    name: "Premium Home",
-    speed: "20 Mbps",
-    price: 400,
-    features: ["20 Mbps Download", "5 Mbps Upload", "Unlimited Data", "24/7 Support", "Free Router", "Priority Support"],
-    customers: 45,
-    status: "active"
-  },
-  {
-    id: 4,
-    name: "Business Elite",
-    speed: "50 Mbps",
-    price: 800,
-    features: ["50 Mbps Download", "10 Mbps Upload", "Unlimited Data", "24/7 Support", "Free Router", "Dedicated Line", "SLA Guarantee"],
-    customers: 25,
-    status: "active"
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const PackageManagement = () => {
-  const [packages, setPackages] = useState(mockPackages);
+  const [packages, setPackages] = useState([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingPackage, setEditingPackage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const [newPackage, setNewPackage] = useState({
     name: "",
@@ -69,25 +32,108 @@ export const PackageManagement = () => {
     features: ""
   });
 
-  const handleAddPackage = () => {
-    const packageData = {
-      id: packages.length + 1,
-      name: newPackage.name,
-      speed: newPackage.speed,
-      price: parseInt(newPackage.price),
-      features: newPackage.features.split('\n').filter(f => f.trim()),
-      customers: 0,
-      status: "active"
-    };
-    
-    setPackages([...packages, packageData]);
-    setNewPackage({ name: "", speed: "", price: "", features: "" });
-    setIsAddDialogOpen(false);
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  const fetchPackages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .select(`
+          *,
+          customer_packages (
+            id,
+            customers (id)
+          )
+        `);
+
+      if (error) throw error;
+
+      // Process packages to count customers
+      const processedPackages = data?.map(pkg => ({
+        ...pkg,
+        customers: pkg.customer_packages?.length || 0,
+        price: Number(pkg.price)
+      })) || [];
+
+      setPackages(processedPackages);
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch packages",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeletePackage = (id: number) => {
-    setPackages(packages.filter(pkg => pkg.id !== id));
+  const handleAddPackage = async () => {
+    try {
+      const { error } = await supabase
+        .from('packages')
+        .insert([{
+          name: newPackage.name,
+          speed: newPackage.speed,
+          price: parseFloat(newPackage.price),
+          features: newPackage.features.split('\n').filter(f => f.trim()),
+          status: 'active'
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Package added successfully",
+      });
+
+      setNewPackage({ name: "", speed: "", price: "", features: "" });
+      setIsAddDialogOpen(false);
+      fetchPackages(); // Refresh the list
+    } catch (error) {
+      console.error('Error adding package:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add package",
+        variant: "destructive",
+      });
+    }
   };
+
+  const handleDeletePackage = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('packages')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Package deleted successfully",
+      });
+
+      fetchPackages(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting package:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete package",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading packages...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -180,7 +226,7 @@ export const PackageManagement = () => {
                 <p className="text-sm font-medium text-gray-600">Total Subscribers</p>
                 <p className="text-2xl font-bold">{packages.reduce((sum, pkg) => sum + pkg.customers, 0)}</p>
               </div>
-              <div className="text-green-600 text-sm">+12% this month</div>
+              <div className="text-green-600 text-sm">Live data</div>
             </div>
           </CardContent>
         </Card>
@@ -190,7 +236,9 @@ export const PackageManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg. Package Price</p>
-                <p className="text-2xl font-bold">${Math.round(packages.reduce((sum, pkg) => sum + pkg.price, 0) / packages.length)}</p>
+                <p className="text-2xl font-bold">
+                  ${packages.length > 0 ? Math.round(packages.reduce((sum, pkg) => sum + pkg.price, 0) / packages.length) : 0}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -201,7 +249,9 @@ export const PackageManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Revenue Potential</p>
-                <p className="text-2xl font-bold">${packages.reduce((sum, pkg) => sum + (pkg.price * pkg.customers), 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold">
+                  ${packages.reduce((sum, pkg) => sum + (pkg.price * pkg.customers), 0).toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -216,7 +266,7 @@ export const PackageManagement = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{pkg.name}</CardTitle>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => setEditingPackage(pkg)}>
+                  <Button variant="ghost" size="sm">
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleDeletePackage(pkg.id)}>
@@ -242,7 +292,7 @@ export const PackageManagement = () => {
               </div>
               
               <div className="space-y-2">
-                {pkg.features.map((feature, index) => (
+                {pkg.features?.map((feature, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm">
                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                     <span>{feature}</span>
@@ -266,6 +316,14 @@ export const PackageManagement = () => {
           </Card>
         ))}
       </div>
+
+      {packages.length === 0 && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <p className="text-gray-500">No packages found. Create your first package to get started.</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
