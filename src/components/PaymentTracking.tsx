@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +39,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatKES } from "@/lib/currency";
 
 export const PaymentTracking = () => {
   const [payments, setPayments] = useState([]);
@@ -270,8 +270,8 @@ export const PaymentTracking = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+                <p className="text-2xl font-bold text-green-600">{formatKES(totalRevenue)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -282,7 +282,7 @@ export const PaymentTracking = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-sm font-medium text-muted-foreground">Completed</p>
                 <p className="text-2xl font-bold">{completedPayments}</p>
               </div>
               <div className="text-green-600 text-sm">✓ Verified</div>
@@ -294,7 +294,7 @@ export const PaymentTracking = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-sm font-medium text-muted-foreground">Pending</p>
                 <p className="text-2xl font-bold text-orange-600">{pendingPayments}</p>
               </div>
               <div className="text-orange-600 text-sm">⏳ Processing</div>
@@ -306,9 +306,9 @@ export const PaymentTracking = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg. Payment</p>
+                <p className="text-sm font-medium text-muted-foreground">Avg. Payment</p>
                 <p className="text-2xl font-bold">
-                  ${payments.length > 0 ? Math.round(totalRevenue / payments.length) : 0}
+                  {payments.length > 0 ? formatKES(Math.round(totalRevenue / payments.length)) : formatKES(0)}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-600" />
@@ -366,7 +366,7 @@ export const PaymentTracking = () => {
                   <TableCell className="font-medium">{payment.customer}</TableCell>
                   <TableCell>{payment.phone}</TableCell>
                   <TableCell className="font-bold text-green-600">
-                    ${payment.amount}
+                    {formatKES(payment.amount)}
                   </TableCell>
                   <TableCell>{payment.payment_method}</TableCell>
                   <TableCell className="font-mono text-sm">
@@ -375,7 +375,7 @@ export const PaymentTracking = () => {
                   <TableCell>
                     <div className="flex flex-col">
                       <span>{payment.date}</span>
-                      <span className="text-xs text-gray-500">{payment.time}</span>
+                      <span className="text-xs text-muted-foreground">{payment.time}</span>
                     </div>
                   </TableCell>
                   <TableCell>

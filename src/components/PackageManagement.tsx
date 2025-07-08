@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatKES } from "@/lib/currency";
 
 export const PackageManagement = () => {
   const [packages, setPackages] = useState([]);
@@ -211,7 +211,7 @@ export const PackageManagement = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Packages</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Packages</p>
                 <p className="text-2xl font-bold">{packages.length}</p>
               </div>
               <Wifi className="h-8 w-8 text-blue-600" />
@@ -223,7 +223,7 @@ export const PackageManagement = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Subscribers</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Subscribers</p>
                 <p className="text-2xl font-bold">{packages.reduce((sum, pkg) => sum + pkg.customers, 0)}</p>
               </div>
               <div className="text-green-600 text-sm">Live data</div>
@@ -235,9 +235,9 @@ export const PackageManagement = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg. Package Price</p>
+                <p className="text-sm font-medium text-muted-foreground">Avg. Package Price</p>
                 <p className="text-2xl font-bold">
-                  ${packages.length > 0 ? Math.round(packages.reduce((sum, pkg) => sum + pkg.price, 0) / packages.length) : 0}
+                  {packages.length > 0 ? formatKES(Math.round(packages.reduce((sum, pkg) => sum + pkg.price, 0) / packages.length)) : formatKES(0)}
                 </p>
               </div>
             </div>
@@ -248,9 +248,9 @@ export const PackageManagement = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Revenue Potential</p>
+                <p className="text-sm font-medium text-muted-foreground">Revenue Potential</p>
                 <p className="text-2xl font-bold">
-                  ${packages.reduce((sum, pkg) => sum + (pkg.price * pkg.customers), 0).toLocaleString()}
+                  {formatKES(packages.reduce((sum, pkg) => sum + (pkg.price * pkg.customers), 0))}
                 </p>
               </div>
             </div>
@@ -287,8 +287,8 @@ export const PackageManagement = () => {
             
             <CardContent className="space-y-4">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">${pkg.price}</div>
-                <div className="text-sm text-gray-500">per month</div>
+                <div className="text-3xl font-bold text-blue-600">{formatKES(pkg.price)}</div>
+                <div className="text-sm text-muted-foreground">per month</div>
               </div>
               
               <div className="space-y-2">
@@ -302,13 +302,13 @@ export const PackageManagement = () => {
               
               <div className="pt-3 border-t">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subscribers:</span>
+                  <span className="text-muted-foreground">Subscribers:</span>
                   <span className="font-medium">{pkg.customers}</span>
                 </div>
                 <div className="flex justify-between text-sm mt-1">
-                  <span className="text-gray-600">Monthly Revenue:</span>
+                  <span className="text-muted-foreground">Monthly Revenue:</span>
                   <span className="font-medium text-green-600">
-                    ${(pkg.price * pkg.customers).toLocaleString()}
+                    {formatKES(pkg.price * pkg.customers)}
                   </span>
                 </div>
               </div>

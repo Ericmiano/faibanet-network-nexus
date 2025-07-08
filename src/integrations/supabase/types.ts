@@ -169,37 +169,145 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_notifications: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          error_message: string | null
+          id: string
+          message: string
+          payment_id: string | null
+          phone_number: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          error_message?: string | null
+          id?: string
+          message: string
+          payment_id?: string | null
+          phone_number: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          error_message?: string | null
+          id?: string
+          message?: string
+          payment_id?: string | null
+          phone_number?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_notifications_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_notifications_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_queue: {
+        Row: {
+          account_reference: string | null
+          amount: number
+          created_at: string
+          error_message: string | null
+          id: string
+          payment_source: string
+          phone_number: string
+          processed_at: string | null
+          raw_data: Json | null
+          status: string
+          transaction_id: string
+        }
+        Insert: {
+          account_reference?: string | null
+          amount: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          payment_source: string
+          phone_number: string
+          processed_at?: string | null
+          raw_data?: Json | null
+          status?: string
+          transaction_id: string
+        }
+        Update: {
+          account_reference?: string | null
+          amount?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          payment_source?: string
+          phone_number?: string
+          processed_at?: string | null
+          raw_data?: Json | null
+          status?: string
+          transaction_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
+          account_reference: string | null
           amount: number
           created_at: string
           customer_id: string | null
           id: string
+          mpesa_receipt_number: string | null
           payment_date: string
           payment_method: string
+          payment_source: string | null
           phone_number: string | null
+          processed_at: string | null
+          reconciliation_status: string | null
           status: string
           transaction_id: string | null
         }
         Insert: {
+          account_reference?: string | null
           amount: number
           created_at?: string
           customer_id?: string | null
           id?: string
+          mpesa_receipt_number?: string | null
           payment_date?: string
           payment_method: string
+          payment_source?: string | null
           phone_number?: string | null
+          processed_at?: string | null
+          reconciliation_status?: string | null
           status?: string
           transaction_id?: string | null
         }
         Update: {
+          account_reference?: string | null
           amount?: number
           created_at?: string
           customer_id?: string | null
           id?: string
+          mpesa_receipt_number?: string | null
           payment_date?: string
           payment_method?: string
+          payment_source?: string | null
           phone_number?: string | null
+          processed_at?: string | null
+          reconciliation_status?: string | null
           status?: string
           transaction_id?: string | null
         }
