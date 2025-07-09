@@ -25,8 +25,8 @@ export const DashboardOverview = () => {
   });
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [packageDistribution, setPackageDistribution] = useState([]);
-  const [recentPayments, setRecentPayments = useState([]);
-  const [systemAlerts, setSystemAlerts = useState([]);
+  const [recentPayments, setRecentPayments] = useState([]);
+  const [systemAlerts, setSystemAlerts] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
