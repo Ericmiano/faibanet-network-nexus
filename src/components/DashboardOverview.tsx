@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { supabase } from "@/integrations/supabase/client";
+import { formatKES } from "@/lib/currency";
 
 export const DashboardOverview = () => {
   const [stats, setStats] = useState({
@@ -25,8 +25,8 @@ export const DashboardOverview = () => {
   });
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [packageDistribution, setPackageDistribution] = useState([]);
-  const [recentPayments, setRecentPayments] = useState([]);
-  const [systemAlerts, setSystemAlerts] = useState([]);
+  const [recentPayments, setRecentPayments = useState([]);
+  const [systemAlerts, setSystemAlerts = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -92,7 +92,7 @@ export const DashboardOverview = () => {
       const packageDistData = Object.entries(packageCounts).map(([name, value], index) => ({
         name,
         value,
-        color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][index] || '#6b7280'
+        color: ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'][index] || 'hsl(var(--muted-foreground))'
       }));
 
       // Calculate monthly revenue
@@ -100,11 +100,11 @@ export const DashboardOverview = () => {
 
       // Generate sample monthly revenue data (you might want to implement actual monthly tracking)
       const monthlyRevenueData = [
-        { month: 'Jan', revenue: 45000 },
-        { month: 'Feb', revenue: 52000 },
-        { month: 'Mar', revenue: 48000 },
-        { month: 'Apr', revenue: 61000 },
-        { month: 'May', revenue: 55000 },
+        { month: 'Jan', revenue: 450000 },
+        { month: 'Feb', revenue: 520000 },
+        { month: 'Mar', revenue: 480000 },
+        { month: 'Apr', revenue: 610000 },
+        { month: 'May', revenue: 550000 },
         { month: 'Jun', revenue: monthlyRev },
       ];
 
@@ -179,7 +179,7 @@ export const DashboardOverview = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{formatKES(stats.monthlyRevenue)}</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-600">Current month</span> total
             </p>
@@ -212,11 +212,19 @@ export const DashboardOverview = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyRevenue}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
-                <Bar dataKey="revenue" fill="#3b82f6" />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="month" className="text-muted-foreground" />
+                <YAxis className="text-muted-foreground" />
+                <Tooltip 
+                  formatter={(value) => [formatKES(Number(value)), 'Revenue']}
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '0.5rem',
+                    color: 'hsl(var(--card-foreground))'
+                  }}
+                />
+                <Bar dataKey="revenue" fill="hsl(var(--primary))" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -243,12 +251,19 @@ export const DashboardOverview = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '0.5rem',
+                      color: 'hsl(var(--card-foreground))'
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[300px]">
-                <p className="text-gray-500">No package data available</p>
+                <p className="text-muted-foreground">No package data available</p>
               </div>
             )}
           </CardContent>
@@ -266,19 +281,19 @@ export const DashboardOverview = () => {
             <div className="space-y-4">
               {recentPayments.length > 0 ? (
                 recentPayments.map((payment, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div>
-                      <p className="font-medium">{payment.customer}</p>
-                      <p className="text-sm text-gray-600">{payment.package}</p>
+                      <p className="font-medium text-foreground">{payment.customer}</p>
+                      <p className="text-sm text-muted-foreground">{payment.package}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-green-600">${payment.amount}</p>
-                      <p className="text-xs text-gray-500">{payment.time}</p>
+                      <p className="font-bold text-green-600">{formatKES(payment.amount)}</p>
+                      <p className="text-xs text-muted-foreground">{payment.time}</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500">No recent payments</p>
+                <p className="text-muted-foreground">No recent payments</p>
               )}
             </div>
           </CardContent>
@@ -292,16 +307,16 @@ export const DashboardOverview = () => {
           <CardContent>
             <div className="space-y-4">
               {systemAlerts.map((alert, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                   <div className={`w-2 h-2 rounded-full mt-2 ${
-                    alert.type === 'error' ? 'bg-red-500' :
+                    alert.type === 'error' ? 'bg-destructive' :
                     alert.type === 'warning' ? 'bg-orange-500' :
                     alert.type === 'success' ? 'bg-green-500' :
-                    'bg-blue-500'
+                    'bg-primary'
                   }`} />
                   <div className="flex-1">
-                    <p className="text-sm">{alert.message}</p>
-                    <p className="text-xs text-gray-500">{alert.time}</p>
+                    <p className="text-sm text-foreground">{alert.message}</p>
+                    <p className="text-xs text-muted-foreground">{alert.time}</p>
                   </div>
                 </div>
               ))}
