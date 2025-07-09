@@ -26,13 +26,13 @@ export const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   ];
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r">
-      <div className="p-6 border-b">
+    <div className="w-64 bg-card shadow-lg border-r border-border">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center gap-2">
-          <Wifi className="h-8 w-8 text-blue-600" />
+          <Wifi className="h-8 w-8 text-primary" />
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Faibanet</h2>
-            <p className="text-sm text-gray-500">ISP Management</p>
+            <h2 className="text-xl font-bold text-foreground">Faibanet</h2>
+            <p className="text-sm text-muted-foreground">ISP Management</p>
           </div>
         </div>
       </div>
@@ -44,7 +44,9 @@ export const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
             variant={activeTab === item.id ? "default" : "ghost"}
             className={cn(
               "w-full justify-start gap-3",
-              activeTab === item.id && "bg-blue-600 text-white hover:bg-blue-700"
+              activeTab === item.id 
+                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                : "text-foreground hover:bg-accent hover:text-accent-foreground"
             )}
             onClick={() => setActiveTab(item.id)}
           >
