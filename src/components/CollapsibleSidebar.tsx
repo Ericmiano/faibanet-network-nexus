@@ -9,19 +9,17 @@ import {
   HeadphonesIcon,
   Wifi,
   Settings,
-  Activity,
-  TrendingUp,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
 import { useState } from "react";
 
-interface SidebarProps {
+interface CollapsibleSidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
 
-export const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
+export const CollapsibleSidebar = ({ activeTab, setActiveTab }: CollapsibleSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
 
   const menuItems = [
@@ -30,8 +28,6 @@ export const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     { id: "packages", label: "Packages", icon: Package },
     { id: "payments", label: "Payments", icon: CreditCard },
     { id: "support", label: "Support", icon: HeadphonesIcon },
-    { id: "network", label: "Network", icon: Activity },
-    { id: "reports", label: "Reports", icon: TrendingUp },
   ];
 
   return (
