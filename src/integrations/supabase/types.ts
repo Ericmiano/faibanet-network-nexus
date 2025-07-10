@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_devices: {
+        Row: {
+          blocked_at: string | null
+          blocked_by_user: boolean | null
+          customer_account_id: string
+          device_mac: string
+          device_name: string | null
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_at?: string | null
+          blocked_by_user?: boolean | null
+          customer_account_id: string
+          device_mac: string
+          device_name?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_at?: string | null
+          blocked_by_user?: boolean | null
+          customer_account_id?: string
+          device_mac?: string
+          device_name?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_devices_customer_account_id_fkey"
+            columns: ["customer_account_id"]
+            isOneToOne: false
+            referencedRelation: "customer_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connectivity_logs: {
         Row: {
           checked_at: string
@@ -48,6 +86,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      customer_accounts: {
+        Row: {
+          account_number: string
+          bandwidth_limit: number | null
+          created_at: string | null
+          data_quota: number | null
+          id: string
+          internet_password: string
+          service_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          bandwidth_limit?: number | null
+          created_at?: string | null
+          data_quota?: number | null
+          id?: string
+          internet_password: string
+          service_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          bandwidth_limit?: number | null
+          created_at?: string | null
+          data_quota?: number | null
+          id?: string
+          internet_password?: string
+          service_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       customer_packages: {
         Row: {
@@ -133,6 +207,44 @@ export type Database = {
         }
         Relationships: []
       }
+      data_usage: {
+        Row: {
+          created_at: string | null
+          customer_account_id: string
+          date: string
+          download_mb: number | null
+          id: string
+          total_mb: number | null
+          upload_mb: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_account_id: string
+          date: string
+          download_mb?: number | null
+          id?: string
+          total_mb?: number | null
+          upload_mb?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_account_id?: string
+          date?: string
+          download_mb?: number | null
+          id?: string
+          total_mb?: number | null
+          upload_mb?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_usage_customer_account_id_fkey"
+            columns: ["customer_account_id"]
+            isOneToOne: false
+            referencedRelation: "customer_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           bandwidth_cap: number | null
@@ -166,6 +278,33 @@ export type Database = {
           speed?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      password_change_logs: {
+        Row: {
+          changed_at: string | null
+          id: string
+          ip_address: unknown | null
+          password_type: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          password_type: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          password_type?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -321,6 +460,148 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          phone: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          is_active?: boolean | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string | null
+          description: string
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          severity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      service_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          current_bandwidth: number | null
+          current_package_id: string | null
+          customer_account_id: string
+          id: string
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          request_type: string
+          requested_bandwidth: number | null
+          requested_package_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          current_bandwidth?: number | null
+          current_package_id?: string | null
+          customer_account_id: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          request_type: string
+          requested_bandwidth?: number | null
+          requested_package_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          current_bandwidth?: number | null
+          current_package_id?: string | null
+          customer_account_id?: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          request_type?: string
+          requested_bandwidth?: number | null
+          requested_package_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_current_package_id_fkey"
+            columns: ["current_package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_customer_account_id_fkey"
+            columns: ["customer_account_id"]
+            isOneToOne: false
+            referencedRelation: "customer_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_requested_package_id_fkey"
+            columns: ["requested_package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sms_notifications: {
         Row: {
           created_at: string
@@ -414,7 +695,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      log_security_event: {
+        Args: {
+          p_user_id: string
+          p_event_type: string
+          p_description: string
+          p_ip_address?: unknown
+          p_user_agent?: string
+          p_severity?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
