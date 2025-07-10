@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Wifi, Zap, Crown, Check, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatCurrency } from '@/lib/currency';
+import { formatKES } from '@/lib/currency';
 
 interface PackageUpgradeProps {
   customerAccountId: string;
@@ -162,7 +161,7 @@ export const PackageUpgrade: React.FC<PackageUpgradeProps> = ({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold">
-                  {formatCurrency(currentPackage.packages.price)}
+                  {formatKES(currentPackage.packages.price)}
                 </div>
                 <div className="text-sm text-muted-foreground">per month</div>
               </div>
@@ -201,7 +200,7 @@ export const PackageUpgrade: React.FC<PackageUpgradeProps> = ({
                   
                   <div className="space-y-2 mb-4">
                     <div className="text-2xl font-bold">
-                      {formatCurrency(pkg.price)}
+                      {formatKES(pkg.price)}
                       <span className="text-sm font-normal text-muted-foreground">/month</span>
                     </div>
                     <div className="text-sm text-muted-foreground">{pkg.speed}</div>
@@ -240,7 +239,7 @@ export const PackageUpgrade: React.FC<PackageUpgradeProps> = ({
                               <div className="p-3 border rounded mt-1">
                                 <div className="font-medium">{currentPackage?.packages?.name}</div>
                                 <div className="text-sm text-muted-foreground">
-                                  {formatCurrency(currentPackage?.packages?.price)}/month
+                                  {formatKES(currentPackage?.packages?.price)}/month
                                 </div>
                               </div>
                             </div>
@@ -249,7 +248,7 @@ export const PackageUpgrade: React.FC<PackageUpgradeProps> = ({
                               <div className="p-3 border rounded mt-1">
                                 <div className="font-medium">{pkg.name}</div>
                                 <div className="text-sm text-muted-foreground">
-                                  {formatCurrency(pkg.price)}/month
+                                  {formatKES(pkg.price)}/month
                                 </div>
                               </div>
                             </div>
