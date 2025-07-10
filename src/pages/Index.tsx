@@ -1,107 +1,92 @@
 
-import { useState, useCallback, useEffect } from "react";
-import { Sidebar } from "@/components/Sidebar";
-import { CustomerManagement } from "@/components/CustomerManagement";
-import { PackageManagement } from "@/components/PackageManagement";
-import { PaymentTracking } from "@/components/PaymentTracking";
-import { PaymentReconciliation } from "@/components/PaymentReconciliation";
-import { SupportTickets } from "@/components/SupportTickets";
-import { DashboardOverview } from "@/components/DashboardOverview";
-import { NetworkMonitoring } from "@/components/NetworkMonitoring";
-import { AdvancedCustomerManagement } from "@/components/AdvancedCustomerManagement";
-import { FinancialReporting } from "@/components/FinancialReporting";
-import { EnhancedDashboard } from "@/components/EnhancedDashboard";
-import { BreadcrumbNav } from "@/components/BreadcrumbNav";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { performanceLogger } from "@/lib/performance";
-import { ErrorBoundary } from "react-error-boundary";
-
-const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => (
-  <div className="flex items-center justify-center min-h-[400px] p-6">
-    <div className="text-center space-y-4">
-      <h2 className="text-2xl font-bold text-destructive">Something went wrong</h2>
-      <p className="text-muted-foreground">{error.message}</p>
-      <button 
-        onClick={resetErrorBoundary}
-        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-      >
-        Try again
-      </button>
-    </div>
-  </div>
-);
+import React from 'react';
+import { DashboardOverview } from '@/components/DashboardOverview';
+import { CustomerManagement } from '@/components/CustomerManagement';
+import { AdminSecurityDashboard } from '@/components/admin/AdminSecurityDashboard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  BarChart3, 
+  Users, 
+  Shield, 
+  Settings, 
+  Wifi,
+  LogOut 
+} from 'lucide-react';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
-
-  // Performance monitoring
-  useEffect(() => {
-    performanceLogger.mark('page-load-start');
-    return () => {
-      performanceLogger.mark('page-load-end');
-      performanceLogger.measure('page-load-time', 'page-load-start', 'page-load-end');
-    };
-  }, []);
-
-  const handleTabChange = useCallback((tab: string) => {
-    performanceLogger.mark(`tab-switch-${tab}-start`);
-    setActiveTab(tab);
-    setTimeout(() => {
-      performanceLogger.mark(`tab-switch-${tab}-end`);
-      performanceLogger.measure(`tab-switch-${tab}`, `tab-switch-${tab}-start`, `tab-switch-${tab}-end`);
-    }, 0);
-  }, []);
-
-  // Keyboard shortcuts
-  useKeyboardShortcuts({
-    onDashboard: () => handleTabChange("dashboard"),
-    onCustomers: () => handleTabChange("customers"),
-    onPackages: () => handleTabChange("packages"),
-    onPayments: () => handleTabChange("payments"),
-    onSupport: () => handleTabChange("support"),
-    onNetwork: () => handleTabChange("network"),
-    onReports: () => handleTabChange("reports"),
-  });
-
-  const renderContent = useCallback(() => {
-    const contentMap = {
-      dashboard: <EnhancedDashboard />,
-      customers: <AdvancedCustomerManagement />,
-      packages: <PackageManagement />,
-      payments: <PaymentTracking />,
-      reconciliation: <PaymentReconciliation />,
-      support: <SupportTickets />,
-      network: <NetworkMonitoring />,
-      reports: <FinancialReporting />,
-    } as const;
-
-    return contentMap[activeTab as keyof typeof contentMap] || <EnhancedDashboard />;
-  }, [activeTab]);
+  const { signOut, profile } = useAuth();
 
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <div className="flex min-h-screen bg-background">
-        <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} />
-        
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="mb-6 flex items-center justify-between">
-            <div className="space-y-2">
-              <BreadcrumbNav activeTab={activeTab} />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Wifi className="h-8 w-8 text-primary" />
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Faibanet ISP Management</h1>
-                <p className="text-muted-foreground mt-2">Complete ISP management solution with real-time monitoring</p>
+                <h1 className="text-2xl font-bold">Faibanet Admin</h1>
+                <p className="text-muted-foreground">System Administration Portal</p>
               </div>
             </div>
-            <ThemeToggle />
           </div>
-          
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            {renderContent()}
-          </ErrorBoundary>
-        </main>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              Welcome, {profile?.full_name || 'Admin'}
+            </span>
+            <Button variant="outline" onClick={signOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto p-6">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="customers" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Customers
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Security
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">
+            <DashboardOverview />
+          </TabsContent>
+
+          <TabsContent value="customers">
+            <CustomerManagement />
+          </TabsContent>
+
+          <TabsContent value="security">
+            <AdminSecurityDashboard />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="text-center py-12">
+              <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">System Settings</h3>
+              <p className="text-muted-foreground">Advanced system configuration options coming soon.</p>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-    </ErrorBoundary>
+    </div>
   );
 };
 

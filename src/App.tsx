@@ -7,22 +7,30 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { AuthPage } from "@/components/auth/AuthPage";
+import { EnhancedAuthPage } from "@/components/auth/EnhancedAuthPage";
 import { CustomerDashboard } from "@/components/customer/CustomerDashboard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { LoadingScreen } from "@/components/LoadingSpinner";
+import { useSecurityMonitor } from "@/hooks/useSecurityMonitor";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  useSecurityMonitor(); // Add security monitoring
   
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
   
   if (!user) {
@@ -36,11 +44,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { profile, loading } = useAuth();
   
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
   
   if (profile?.role !== 'admin') {
@@ -51,7 +55,11 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AuthRedirect = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingScreen />;
+  }
   
   if (user) {
     if (profile?.role === 'admin') {
@@ -60,45 +68,47 @@ const AuthRedirect = () => {
     return <Navigate to="/dashboard" replace />;
   }
   
-  return <AuthPage />;
+  return <EnhancedAuthPage />;
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="faibanet-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/auth" element={<AuthRedirect />} />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <CustomerDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute>
-                    <AdminRoute>
-                      <Index />
-                    </AdminRoute>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/" element={<AuthRedirect />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="faibanet-theme">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                <Route path="/auth" element={<AuthRedirect />} />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <CustomerDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute>
+                      <AdminRoute>
+                        <Index />
+                      </AdminRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/" element={<AuthRedirect />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

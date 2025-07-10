@@ -27,6 +27,26 @@ export const useAuth = () => {
   return context;
 };
 
+// Cleanup function to prevent auth limbo states
+const cleanupAuthState = () => {
+  // Remove standard auth tokens
+  localStorage.removeItem('supabase.auth.token');
+  
+  // Remove all Supabase auth keys from localStorage
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  
+  // Remove from sessionStorage if in use
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -64,14 +84,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchProfile(session.user.id);
-          if (event === 'SIGNED_IN') {
-            await logSecurityEvent('login_success', 'User signed in successfully');
-          }
+          // Defer profile fetching to prevent potential deadlocks
+          setTimeout(async () => {
+            await fetchProfile(session.user.id);
+            if (event === 'SIGNED_IN') {
+              await logSecurityEvent('login_success', 'User signed in successfully');
+            }
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -80,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -94,6 +120,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName: string, phone: string) => {
     try {
+      // Clean up existing state before signing up
+      cleanupAuthState();
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -120,6 +149,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Clean up existing state and attempt global sign out
+      cleanupAuthState();
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -130,6 +167,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
+      // Force page refresh for clean state
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
+
       return { error: null };
     } catch (error) {
       return { error };
@@ -139,12 +181,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await logSecurityEvent('logout', 'User signed out');
-      await supabase.auth.signOut();
+      
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out (fallback if it fails)
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Ignore errors during sign out
+      }
+      
       setUser(null);
       setSession(null);
       setProfile(null);
+      
+      // Force page reload for clean state
+      window.location.href = '/auth';
     } catch (error) {
       console.error('Error signing out:', error);
+      // Force redirect even if sign out fails
+      window.location.href = '/auth';
     }
   };
 
