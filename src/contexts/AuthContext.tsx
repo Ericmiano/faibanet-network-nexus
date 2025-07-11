@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,6 +29,7 @@ export const useAuth = () => {
 
 // Cleanup function to prevent auth limbo states
 const cleanupAuthState = () => {
+  console.log('Cleaning up auth state...');
   // Remove standard auth tokens
   localStorage.removeItem('supabase.auth.token');
   
@@ -78,18 +80,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching profile:', error);
-        return;
+        return null;
       }
       
       console.log('Profile fetched successfully:', data);
       setProfile(data);
+      return data;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
+      return null;
     }
   };
 
   useEffect(() => {
     let mounted = true;
+    console.log('AuthProvider: Setting up auth state listener');
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -97,36 +102,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!mounted) return;
         
-        // Update session and user state
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Handle profile fetching
-        if (session?.user && event !== 'TOKEN_REFRESHED') {
-          // Use setTimeout to prevent potential issues
-          setTimeout(() => {
-            if (mounted) {
-              fetchProfile(session.user.id);
-            }
-          }, 100);
+        try {
+          // Update session and user state
+          setSession(session);
+          setUser(session?.user ?? null);
           
-          if (event === 'SIGNED_IN') {
+          // Handle profile fetching
+          if (session?.user && event !== 'TOKEN_REFRESHED') {
+            // Use setTimeout to prevent potential deadlocks
             setTimeout(async () => {
-              await logSecurityEvent('login_success', 'User signed in successfully');
-            }, 200);
+              if (mounted) {
+                await fetchProfile(session.user.id);
+              }
+            }, 100);
+            
+            if (event === 'SIGNED_IN') {
+              setTimeout(async () => {
+                await logSecurityEvent('login_success', 'User signed in successfully');
+              }, 200);
+            }
+          } else if (!session) {
+            setProfile(null);
           }
-        } else if (!session) {
-          setProfile(null);
+        } catch (error) {
+          console.error('Error in auth state change handler:', error);
+        } finally {
+          // Always set loading to false after handling auth state
+          setLoading(false);
         }
-        
-        // Always set loading to false after handling auth state
-        setLoading(false);
       }
     );
 
     // Get initial session
     const getInitialSession = async () => {
       try {
+        console.log('AuthProvider: Getting initial session');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -137,6 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!mounted) return;
         
+        console.log('Initial session:', session?.user?.id || 'no session');
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -156,6 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getInitialSession();
 
     return () => {
+      console.log('AuthProvider: Cleaning up auth listener');
       mounted = false;
       subscription.unsubscribe();
     };
@@ -163,8 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName: string, phone: string) => {
     try {
-      // Clean up existing state before signing up
-      cleanupAuthState();
+      console.log('SignUp attempt for:', email);
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -184,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
-      toast.success('Registration successful! Please check your email to verify your account.');
+      console.log('Signup successful for:', email);
       return { error: null };
     } catch (error) {
       console.error('Signup exception:', error);
@@ -194,10 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true);
-      
-      // Clean up existing state first
-      cleanupAuthState();
+      console.log('SignIn attempt for:', email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -207,16 +215,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('Sign in error:', error);
         await logSecurityEvent('login_failure', `Failed login attempt for ${email}`, 'medium');
-        setLoading(false);
         return { error };
       }
 
       console.log('Sign in successful for:', email);
-      // Don't set loading to false here, let the auth state change handle it
       return { error: null };
     } catch (error) {
       console.error('Sign in exception:', error);
-      setLoading(false);
       return { error };
     }
   };
@@ -229,11 +234,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await logSecurityEvent('logout', 'User signed out');
       }
       
-      // Clean up auth state first
-      cleanupAuthState();
-      
-      // Sign out from Supabase
+      // Sign out from Supabase first
       await supabase.auth.signOut();
+      
+      // Clean up auth state
+      cleanupAuthState();
       
       // Clear local state
       setUser(null);
@@ -244,6 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error signing out:', error);
       // Force clear state even if sign out fails
+      cleanupAuthState();
       setUser(null);
       setSession(null);
       setProfile(null);

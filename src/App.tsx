@@ -29,11 +29,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   useSecurityMonitor();
   
+  console.log('ProtectedRoute: user=', user?.id, 'loading=', loading);
+  
   if (loading) {
     return <LoadingScreen />;
   }
   
   if (!user) {
+    console.log('ProtectedRoute: No user, redirecting to /auth');
     return <Navigate to="/auth" replace />;
   }
   
@@ -41,13 +44,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { profile, loading } = useAuth();
+  const { profile, loading, user } = useAuth();
+  
+  console.log('AdminRoute: profile=', profile, 'loading=', loading, 'user=', user?.id);
   
   if (loading) {
     return <LoadingScreen />;
   }
   
+  if (!user) {
+    console.log('AdminRoute: No user, redirecting to /auth');
+    return <Navigate to="/auth" replace />;
+  }
+  
   if (profile?.role !== 'admin') {
+    console.log('AdminRoute: Not admin, redirecting to /dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
@@ -57,14 +68,18 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 const AuthRedirect = () => {
   const { user, profile, loading } = useAuth();
   
+  console.log('AuthRedirect: user=', user?.id, 'profile=', profile, 'loading=', loading);
+  
   if (loading) {
     return <LoadingScreen />;
   }
   
   if (user) {
     if (profile?.role === 'admin') {
+      console.log('AuthRedirect: Admin user, redirecting to /admin');
       return <Navigate to="/admin" replace />;
     }
+    console.log('AuthRedirect: Regular user, redirecting to /dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
