@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +26,7 @@ export const EnhancedAuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string>('');
 
   const validateForm = (isSignUp: boolean = false) => {
     const errors: Record<string, string> = {};
@@ -39,8 +39,8 @@ export const EnhancedAuthPage = () => {
     
     if (!formData.password) {
       errors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
     }
     
     if (isSignUp) {
@@ -50,8 +50,6 @@ export const EnhancedAuthPage = () => {
       
       if (!formData.phone) {
         errors.phone = 'Phone number is required';
-      } else if (!/^\+254\d{9}$/.test(formData.phone)) {
-        errors.phone = 'Please enter a valid Kenyan phone number (+254XXXXXXXXX)';
       }
       
       if (formData.password !== formData.confirmPassword) {
@@ -65,22 +63,35 @@ export const EnhancedAuthPage = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!validateForm() || isBlocked || isSubmitting) return;
 
     setIsSubmitting(true);
+    setSubmitError('');
     
     try {
+      console.log('Attempting sign in for:', formData.email);
+      
       const canProceed = await checkRateLimit(formData.email);
-      if (!canProceed) return;
+      if (!canProceed) {
+        setIsSubmitting(false);
+        return;
+      }
 
       const { error } = await signIn(formData.email, formData.password);
       
       if (error) {
+        console.error('Sign in failed:', error);
         await logFailedAttempt(formData.email);
+        setSubmitError(error.message || 'Failed to sign in');
         toast.error(error.message || 'Failed to sign in');
+      } else {
+        console.log('Sign in successful, redirecting...');
+        toast.success('Successfully signed in!');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign in error:', error);
+      setSubmitError('An unexpected error occurred');
       toast.error('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
@@ -92,8 +103,11 @@ export const EnhancedAuthPage = () => {
     if (!validateForm(true) || isSubmitting) return;
 
     setIsSubmitting(true);
+    setSubmitError('');
     
     try {
+      console.log('Attempting sign up for:', formData.email);
+      
       const { error } = await signUp(
         formData.email, 
         formData.password, 
@@ -102,10 +116,16 @@ export const EnhancedAuthPage = () => {
       );
       
       if (error) {
+        console.error('Sign up failed:', error);
+        setSubmitError(error.message || 'Failed to create account');
         toast.error(error.message || 'Failed to create account');
+      } else {
+        console.log('Sign up successful');
+        toast.success('Account created successfully! Please check your email.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign up error:', error);
+      setSubmitError('An unexpected error occurred');
       toast.error('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
@@ -117,7 +137,18 @@ export const EnhancedAuthPage = () => {
     if (formErrors[field]) {
       setFormErrors(prev => ({ ...prev, [field]: '' }));
     }
+    if (submitError) {
+      setSubmitError('');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center p-4">
@@ -146,6 +177,13 @@ export const EnhancedAuthPage = () => {
               </Alert>
             )}
 
+            {submitError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            )}
+
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -157,6 +195,7 @@ export const EnhancedAuthPage = () => {
                     onChange={(e) => updateFormData('email', e.target.value)}
                     disabled={isSubmitting || isBlocked}
                     className={formErrors.email ? 'border-destructive' : ''}
+                    autoComplete="email"
                   />
                   {formErrors.email && (
                     <p className="text-sm text-destructive">{formErrors.email}</p>
@@ -173,6 +212,7 @@ export const EnhancedAuthPage = () => {
                       onChange={(e) => updateFormData('password', e.target.value)}
                       disabled={isSubmitting || isBlocked}
                       className={formErrors.password ? 'border-destructive' : ''}
+                      autoComplete="current-password"
                     />
                     <Button
                       type="button"
@@ -180,6 +220,7 @@ export const EnhancedAuthPage = () => {
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isSubmitting}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -208,6 +249,7 @@ export const EnhancedAuthPage = () => {
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
+                
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Full Name</Label>
                   <Input
@@ -216,6 +258,7 @@ export const EnhancedAuthPage = () => {
                     onChange={(e) => updateFormData('fullName', e.target.value)}
                     disabled={isSubmitting}
                     className={formErrors.fullName ? 'border-destructive' : ''}
+                    autoComplete="name"
                   />
                   {formErrors.fullName && (
                     <p className="text-sm text-destructive">{formErrors.fullName}</p>
@@ -231,6 +274,7 @@ export const EnhancedAuthPage = () => {
                     onChange={(e) => updateFormData('phone', e.target.value)}
                     disabled={isSubmitting}
                     className={formErrors.phone ? 'border-destructive' : ''}
+                    autoComplete="tel"
                   />
                   {formErrors.phone && (
                     <p className="text-sm text-destructive">{formErrors.phone}</p>
@@ -246,6 +290,7 @@ export const EnhancedAuthPage = () => {
                     onChange={(e) => updateFormData('email', e.target.value)}
                     disabled={isSubmitting}
                     className={formErrors.email ? 'border-destructive' : ''}
+                    autoComplete="email"
                   />
                   {formErrors.email && (
                     <p className="text-sm text-destructive">{formErrors.email}</p>
@@ -262,6 +307,7 @@ export const EnhancedAuthPage = () => {
                       onChange={(e) => updateFormData('password', e.target.value)}
                       disabled={isSubmitting}
                       className={formErrors.password ? 'border-destructive' : ''}
+                      autoComplete="new-password"
                     />
                     <Button
                       type="button"
@@ -269,6 +315,7 @@ export const EnhancedAuthPage = () => {
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isSubmitting}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -287,6 +334,7 @@ export const EnhancedAuthPage = () => {
                     onChange={(e) => updateFormData('confirmPassword', e.target.value)}
                     disabled={isSubmitting}
                     className={formErrors.confirmPassword ? 'border-destructive' : ''}
+                    autoComplete="new-password"
                   />
                   {formErrors.confirmPassword && (
                     <p className="text-sm text-destructive">{formErrors.confirmPassword}</p>

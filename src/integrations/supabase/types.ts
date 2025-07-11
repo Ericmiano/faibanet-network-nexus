@@ -591,7 +591,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_active: boolean | null
-          phone: string | null
+          phone: number | null
           promoted_at: string | null
           promoted_by: string | null
           role: string | null
@@ -604,7 +604,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_active?: boolean | null
-          phone?: string | null
+          phone?: number | null
           promoted_at?: string | null
           promoted_by?: string | null
           role?: string | null
@@ -617,7 +617,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_active?: boolean | null
-          phone?: string | null
+          phone?: number | null
           promoted_at?: string | null
           promoted_by?: string | null
           role?: string | null
