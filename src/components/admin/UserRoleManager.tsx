@@ -15,10 +15,8 @@ import {
   Users, 
   Shield, 
   UserCheck, 
-  UserX, 
   Crown,
-  Search,
-  History
+  Search
 } from 'lucide-react';
 
 interface Profile {
@@ -28,37 +26,21 @@ interface Profile {
   role: 'customer' | 'admin' | 'support';
   is_active: boolean;
   created_at: string;
-  promoted_at?: string;
-  promoted_by?: string;
-}
-
-interface AdminAction {
-  id: string;
-  action_type: string;
-  reason: string;
-  created_at: string;
-  admin_id: string;
-  target_user_id: string;
-  admin_profile?: { full_name: string; email: string };
-  target_profile?: { full_name: string; email: string };
 }
 
 export const UserRoleManager = () => {
   const { profile } = useAuth();
   const [users, setUsers] = useState<Profile[]>([]);
-  const [adminActions, setAdminActions] = useState<AdminAction[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [newRole, setNewRole] = useState<'customer' | 'admin' | 'support'>('customer');
   const [reason, setReason] = useState('');
   const [showRoleDialog, setShowRoleDialog] = useState(false);
-  const [showActionsDialog, setShowActionsDialog] = useState(false);
 
   useEffect(() => {
     if (profile?.role === 'admin') {
       fetchUsers();
-      fetchAdminActions();
     }
   }, [profile]);
 
@@ -86,72 +68,23 @@ export const UserRoleManager = () => {
     }
   };
 
-  const fetchAdminActions = async () => {
-    try {
-      // Query admin_actions table directly and join with profiles for names
-      const { data, error } = await supabase
-        .from('admin_actions')
-        .select(`
-          *,
-          admin_profile:admin_id(full_name, email),
-          target_profile:target_user_id(full_name, email)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.log('Admin actions query failed:', error);
-        setAdminActions([]);
-        return;
-      }
-      
-      setAdminActions(data || []);
-    } catch (error) {
-      console.error('Error fetching admin actions:', error);
-      setAdminActions([]);
-    }
-  };
-
   const handleRoleChange = async () => {
     if (!selectedUser) return;
 
     try {
-      // First update the user role
+      // Update the user role
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({
-          role: newRole,
-          promoted_at: newRole === 'admin' ? new Date().toISOString() : undefined,
-          promoted_by: newRole === 'admin' ? profile?.id : undefined
-        })
+        .update({ role: newRole })
         .eq('id', selectedUser.id);
 
       if (updateError) throw updateError;
-
-      // Then log the admin action
-      const actionType = newRole === 'admin' ? 'promote_to_admin' : 
-                        selectedUser.role === 'admin' ? 'demote_from_admin' : 'role_change';
-
-      const { error: logError } = await supabase
-        .from('admin_actions')
-        .insert({
-          admin_id: profile?.id,
-          target_user_id: selectedUser.id,
-          action_type: actionType,
-          reason: reason || null
-        });
-
-      if (logError) {
-        console.error('Failed to log admin action:', logError);
-        // Don't throw error here as the main action succeeded
-      }
 
       toast.success(`Successfully changed ${selectedUser.full_name || selectedUser.email}'s role to ${newRole}`);
       setShowRoleDialog(false);
       setSelectedUser(null);
       setReason('');
       fetchUsers();
-      fetchAdminActions();
     } catch (error: any) {
       console.error('Error changing user role:', error);
       toast.error(error.message || 'Failed to change user role');
@@ -207,59 +140,6 @@ export const UserRoleManager = () => {
           <h2 className="text-2xl font-bold">User Role Management</h2>
           <p className="text-muted-foreground">Manage user roles and permissions</p>
         </div>
-        <Dialog open={showActionsDialog} onOpenChange={setShowActionsDialog}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <History className="h-4 w-4 mr-2" />
-              View Actions Log
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Admin Actions History</DialogTitle>
-            </DialogHeader>
-            <div className="max-h-96 overflow-y-auto">
-              {adminActions.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Admin</TableHead>
-                      <TableHead>Target User</TableHead>
-                      <TableHead>Action</TableHead>
-                      <TableHead>Reason</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {adminActions.map((action) => (
-                      <TableRow key={action.id}>
-                        <TableCell>
-                          {new Date(action.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {action.admin_profile?.full_name || action.admin_profile?.email || 'Unknown'}
-                        </TableCell>
-                        <TableCell>
-                          {action.target_profile?.full_name || action.target_profile?.email || 'Unknown'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {action.action_type.replace('_', ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{action.reason || '-'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No admin actions recorded yet
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Search */}
