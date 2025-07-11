@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string | null
+          id: string
+          new_role: string | null
+          old_role: string | null
+          reason: string | null
+          target_user_id: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string | null
+          id?: string
+          new_role?: string | null
+          old_role?: string | null
+          reason?: string | null
+          target_user_id: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string | null
+          id?: string
+          new_role?: string | null
+          old_role?: string | null
+          reason?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       api_rate_limits: {
         Row: {
           created_at: string | null
@@ -559,6 +592,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           phone: string | null
+          promoted_at: string | null
+          promoted_by: string | null
           role: string | null
           updated_at: string | null
         }
@@ -570,6 +605,8 @@ export type Database = {
           id: string
           is_active?: boolean | null
           phone?: string | null
+          promoted_at?: string | null
+          promoted_by?: string | null
           role?: string | null
           updated_at?: string | null
         }
@@ -581,6 +618,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           phone?: string | null
+          promoted_at?: string | null
+          promoted_by?: string | null
           role?: string | null
           updated_at?: string | null
         }
@@ -821,9 +860,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_user_role: {
+        Args: { target_user_id: string; new_role: string; reason?: string }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: { p_email: string; p_ip_address: unknown }
         Returns: boolean
+      }
+      get_admin_actions_with_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          admin_id: string
+          target_user_id: string
+          action_type: string
+          old_role: string
+          new_role: string
+          reason: string
+          created_at: string
+          admin_name: string
+          admin_email: string
+          target_name: string
+          target_email: string
+        }[]
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>

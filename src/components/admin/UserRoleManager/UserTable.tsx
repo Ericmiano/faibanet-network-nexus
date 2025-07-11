@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users } from 'lucide-react';
+import { Users, Crown, Clock } from 'lucide-react';
 import { Profile } from './types';
 import { getRoleBadgeVariant, getRoleIcon } from './utils';
 
@@ -40,6 +40,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead>Promoted</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -66,7 +67,29 @@ export const UserTable: React.FC<UserTableProps> = ({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(user.created_at).toLocaleDateString()}
+                      <div className="text-sm">
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {user.promoted_at ? (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Crown className="h-3 w-3 text-yellow-500" />
+                          <div>
+                            <div>{new Date(user.promoted_at).toLocaleDateString()}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Admin promoted
+                            </div>
+                          </div>
+                        </div>
+                      ) : user.role === 'admin' ? (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          Original admin
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Button
