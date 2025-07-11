@@ -88,14 +88,19 @@ export const UserRoleManager = () => {
 
   const fetchAdminActions = async () => {
     try {
-      // Since admin_actions table might not be in types yet, we'll use a generic query
+      // Query admin_actions table directly and join with profiles for names
       const { data, error } = await supabase
-        .rpc('get_admin_actions_with_profiles')
+        .from('admin_actions')
+        .select(`
+          *,
+          admin_profile:admin_id(full_name, email),
+          target_profile:target_user_id(full_name, email)
+        `)
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) {
-        console.log('Admin actions query failed, using fallback:', error);
-        // Fallback: just set empty array for now
+        console.log('Admin actions query failed:', error);
         setAdminActions([]);
         return;
       }
@@ -103,7 +108,6 @@ export const UserRoleManager = () => {
       setAdminActions(data || []);
     } catch (error) {
       console.error('Error fetching admin actions:', error);
-      // Don't show error toast for this as it's not critical
       setAdminActions([]);
     }
   };
@@ -112,14 +116,35 @@ export const UserRoleManager = () => {
     if (!selectedUser) return;
 
     try {
-      // Use direct RPC call since the function might not be in types yet
-      const { data, error } = await supabase.rpc('change_user_role', {
-        target_user_id: selectedUser.id,
-        new_role: newRole,
-        reason: reason || null
-      });
+      // First update the user role
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          role: newRole,
+          promoted_at: newRole === 'admin' ? new Date().toISOString() : undefined,
+          promoted_by: newRole === 'admin' ? profile?.id : undefined
+        })
+        .eq('id', selectedUser.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Then log the admin action
+      const actionType = newRole === 'admin' ? 'promote_to_admin' : 
+                        selectedUser.role === 'admin' ? 'demote_from_admin' : 'role_change';
+
+      const { error: logError } = await supabase
+        .from('admin_actions')
+        .insert({
+          admin_id: profile?.id,
+          target_user_id: selectedUser.id,
+          action_type: actionType,
+          reason: reason || null
+        });
+
+      if (logError) {
+        console.error('Failed to log admin action:', logError);
+        // Don't throw error here as the main action succeeded
+      }
 
       toast.success(`Successfully changed ${selectedUser.full_name || selectedUser.email}'s role to ${newRole}`);
       setShowRoleDialog(false);
