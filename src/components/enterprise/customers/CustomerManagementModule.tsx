@@ -253,7 +253,7 @@ export const CustomerManagementModule: React.FC = () => {
                 <div className="h-3 bg-muted rounded w-3/4"></div>
               </CardContent>
             </Card>
-          ))
+          ))}
         </div>
       </div>
     );
