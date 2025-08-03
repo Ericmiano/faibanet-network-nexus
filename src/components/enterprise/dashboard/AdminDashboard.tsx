@@ -68,11 +68,12 @@ export const AdminDashboard: React.FC = () => {
         .select('*', { count: 'exact', head: true })
         .eq('role', 'customer');
 
-      // Fetch active subscriptions
-      const { count: subscriptionsCount } = await supabase
-        .from('customer_subscriptions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+      // Fetch active subscriptions (temporarily disabled due to schema mismatch)
+      const subscriptionsCount = 0;
+      // const { count: subscriptionsCount } = await supabase
+      //   .from('customer_subscriptions')
+      //   .select('*', { count: 'exact', head: true })
+      //   .eq('status', 'active');
 
       // Fetch open tickets
       const { count: ticketsCount } = await supabase
@@ -80,11 +81,12 @@ export const AdminDashboard: React.FC = () => {
         .select('*', { count: 'exact', head: true })
         .in('status', ['open', 'in_progress']);
 
-      // Fetch network nodes
-      const { count: nodesCount } = await supabase
-        .from('network_nodes')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+      // Fetch network nodes (temporarily disabled due to schema mismatch)
+      const nodesCount = 0;
+      // const { count: nodesCount } = await supabase
+      //   .from('network_nodes')
+      //   .select('*', { count: 'exact', head: true })
+      //   .eq('status', 'active');
 
       // Fetch pending payments
       const { count: paymentsCount } = await supabase

@@ -45,7 +45,8 @@ export const EnterpriseNavigation: React.FC<EnterpriseNavigationProps> = ({
 
   const sidebarItems = filteredItems.map(item => ({
     ...item,
-    onClick: () => onModuleChange(item.id)
+    onClick: () => onModuleChange(item.id),
+    badge: item.badge?.toString()
   }));
 
   return (

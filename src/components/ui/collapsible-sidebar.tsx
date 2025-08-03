@@ -23,7 +23,7 @@ interface SidebarItem {
   icon: React.ComponentType<{ className?: string }>;
   href?: string;
   onClick?: () => void;
-  badge?: string;
+  badge?: string | number;
 }
 
 interface CollapsibleSidebarProps {
