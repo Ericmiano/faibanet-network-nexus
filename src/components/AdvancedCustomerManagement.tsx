@@ -65,7 +65,7 @@ export const AdvancedCustomerManagement = () => {
   const fetchCustomers = async () => {
     try {
       const { data: customersData } = await supabase
-        .from('customers')
+        .from('profiles')
         .select(`
           *,
           customer_packages (

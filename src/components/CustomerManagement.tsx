@@ -65,7 +65,7 @@ export const CustomerManagement = () => {
   const fetchCustomers = async () => {
     try {
       const { data, error } = await supabase
-        .from('customers')
+        .from('profiles')
         .select(`
           *,
           customer_packages (
@@ -108,7 +108,7 @@ export const CustomerManagement = () => {
   const fetchPackages = async () => {
     try {
       const { data, error } = await supabase
-        .from('packages')
+        .from('internet_packages')
         .select('*')
         .eq('status', 'active');
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { EnterpriseNavigation } from './EnterpriseNavigation';
+import { RealTimeNotifications } from '@/components/common/RealTimeNotifications';
 import { AdminDashboard } from './dashboard/AdminDashboard';
 import { CustomerManagementModule } from './customers/CustomerManagementModule';
 import { NetworkMonitoringModule } from './network/NetworkMonitoringModule';
@@ -101,6 +102,8 @@ export const EnterpriseDashboard: React.FC = () => {
         return <PackageManagementModule />;
       case 'billing':
         return <BillingModule />;
+      case 'notifications':
+        return <RealTimeNotifications />;
       case 'analytics':
         return <AnalyticsModule />;
       case 'users':

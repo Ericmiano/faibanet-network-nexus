@@ -10,566 +10,543 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
-      admin_actions: {
+      analytics_events: {
         Row: {
-          action_type: string
-          admin_id: string
-          created_at: string | null
+          event_name: string
           id: string
-          new_role: string | null
-          old_role: string | null
-          reason: string | null
-          target_user_id: string
-        }
-        Insert: {
-          action_type: string
-          admin_id: string
-          created_at?: string | null
-          id?: string
-          new_role?: string | null
-          old_role?: string | null
-          reason?: string | null
-          target_user_id: string
-        }
-        Update: {
-          action_type?: string
-          admin_id?: string
-          created_at?: string | null
-          id?: string
-          new_role?: string | null
-          old_role?: string | null
-          reason?: string | null
-          target_user_id?: string
-        }
-        Relationships: []
-      }
-      api_rate_limits: {
-        Row: {
-          created_at: string | null
-          endpoint: string
-          id: string
-          ip_address: unknown
-          request_count: number | null
+          ip_address: unknown | null
+          page_url: string | null
+          properties: Json | null
+          referrer: string | null
+          session_id: string | null
+          timestamp: string
+          user_agent: string | null
           user_id: string | null
-          window_start: string | null
         }
         Insert: {
-          created_at?: string | null
-          endpoint: string
+          event_name: string
           id?: string
-          ip_address: unknown
-          request_count?: number | null
+          ip_address?: unknown | null
+          page_url?: string | null
+          properties?: Json | null
+          referrer?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
           user_id?: string | null
-          window_start?: string | null
         }
         Update: {
-          created_at?: string | null
-          endpoint?: string
+          event_name?: string
           id?: string
-          ip_address?: unknown
-          request_count?: number | null
+          ip_address?: unknown | null
+          page_url?: string | null
+          properties?: Json | null
+          referrer?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
           user_id?: string | null
-          window_start?: string | null
         }
         Relationships: []
       }
-      blocked_devices: {
+      audit_logs: {
         Row: {
-          blocked_at: string | null
-          blocked_by_user: boolean | null
-          customer_account_id: string
-          device_mac: string
-          device_name: string | null
+          action: string
+          created_at: string
           id: string
-          reason: string | null
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+          user_id: string | null
         }
         Insert: {
-          blocked_at?: string | null
-          blocked_by_user?: boolean | null
-          customer_account_id: string
-          device_mac: string
-          device_name?: string | null
+          action: string
+          created_at?: string
           id?: string
-          reason?: string | null
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+          user_id?: string | null
         }
         Update: {
-          blocked_at?: string | null
-          blocked_by_user?: boolean | null
-          customer_account_id?: string
-          device_mac?: string
-          device_name?: string | null
+          action?: string
+          created_at?: string
           id?: string
-          reason?: string | null
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "blocked_devices_customer_account_id_fkey"
-            columns: ["customer_account_id"]
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "customer_accounts"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      connectivity_logs: {
+      customer_subscriptions: {
         Row: {
-          checked_at: string
-          customer_id: string | null
-          id: string
-          notes: string | null
-          response_time: number | null
-          status: string
-        }
-        Insert: {
-          checked_at?: string
-          customer_id?: string | null
-          id?: string
-          notes?: string | null
-          response_time?: number | null
-          status: string
-        }
-        Update: {
-          checked_at?: string
-          customer_id?: string | null
-          id?: string
-          notes?: string | null
-          response_time?: number | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "connectivity_logs_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      customer_accounts: {
-        Row: {
-          account_number: string
-          bandwidth_limit: number | null
-          created_at: string | null
-          data_quota: number | null
-          id: string
-          internet_password: string
-          service_status: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          account_number: string
-          bandwidth_limit?: number | null
-          created_at?: string | null
-          data_quota?: number | null
-          id?: string
-          internet_password: string
-          service_status?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          account_number?: string
-          bandwidth_limit?: number | null
-          created_at?: string | null
-          data_quota?: number | null
-          id?: string
-          internet_password?: string
-          service_status?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      customer_packages: {
-        Row: {
+          assigned_technician_id: string | null
+          auto_renewal: boolean | null
+          bandwidth_usage_gb: number | null
           created_at: string
           customer_id: string | null
           end_date: string | null
           id: string
-          is_active: boolean
+          installation_address: string | null
+          installation_notes: string | null
           package_id: string | null
           start_date: string
+          status: string
+          updated_at: string
         }
         Insert: {
+          assigned_technician_id?: string | null
+          auto_renewal?: boolean | null
+          bandwidth_usage_gb?: number | null
           created_at?: string
           customer_id?: string | null
           end_date?: string | null
           id?: string
-          is_active?: boolean
+          installation_address?: string | null
+          installation_notes?: string | null
           package_id?: string | null
           start_date?: string
+          status?: string
+          updated_at?: string
         }
         Update: {
+          assigned_technician_id?: string | null
+          auto_renewal?: boolean | null
+          bandwidth_usage_gb?: number | null
           created_at?: string
           customer_id?: string | null
           end_date?: string | null
           id?: string
-          is_active?: boolean
+          installation_address?: string | null
+          installation_notes?: string | null
           package_id?: string | null
           start_date?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "customer_packages_customer_id_fkey"
-            columns: ["customer_id"]
+            foreignKeyName: "customer_subscriptions_assigned_technician_id_fkey"
+            columns: ["assigned_technician_id"]
             isOneToOne: false
-            referencedRelation: "customers"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "customer_packages_package_id_fkey"
+            foreignKeyName: "customer_subscriptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_subscriptions_package_id_fkey"
             columns: ["package_id"]
             isOneToOne: false
-            referencedRelation: "packages"
+            referencedRelation: "internet_packages"
             referencedColumns: ["id"]
           },
         ]
       }
-      customers: {
+      internet_packages: {
         Row: {
-          address: string | null
           created_at: string
-          email: string | null
-          gps_location: string | null
+          data_limit_gb: number | null
+          description: string | null
+          features: Json | null
           id: string
-          installation_date: string
+          is_active: boolean | null
+          is_promotional: boolean | null
           name: string
-          phone: string
-          status: string
+          price_monthly: number
+          price_setup: number | null
+          promotional_end_date: string | null
+          promotional_price: number | null
+          speed_mbps: number
+          terms_conditions: string | null
           updated_at: string
         }
         Insert: {
-          address?: string | null
           created_at?: string
-          email?: string | null
-          gps_location?: string | null
+          data_limit_gb?: number | null
+          description?: string | null
+          features?: Json | null
           id?: string
-          installation_date?: string
+          is_active?: boolean | null
+          is_promotional?: boolean | null
           name: string
-          phone: string
-          status?: string
+          price_monthly: number
+          price_setup?: number | null
+          promotional_end_date?: string | null
+          promotional_price?: number | null
+          speed_mbps: number
+          terms_conditions?: string | null
           updated_at?: string
         }
         Update: {
-          address?: string | null
           created_at?: string
-          email?: string | null
-          gps_location?: string | null
+          data_limit_gb?: number | null
+          description?: string | null
+          features?: Json | null
           id?: string
-          installation_date?: string
+          is_active?: boolean | null
+          is_promotional?: boolean | null
           name?: string
-          phone?: string
-          status?: string
+          price_monthly?: number
+          price_setup?: number | null
+          promotional_end_date?: string | null
+          promotional_price?: number | null
+          speed_mbps?: number
+          terms_conditions?: string | null
           updated_at?: string
         }
         Relationships: []
       }
-      data_usage: {
+      invoices: {
         Row: {
-          created_at: string | null
-          customer_account_id: string
-          date: string
-          download_mb: number | null
-          id: string
-          total_mb: number | null
-          upload_mb: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          customer_account_id: string
-          date: string
-          download_mb?: number | null
-          id?: string
-          total_mb?: number | null
-          upload_mb?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          customer_account_id?: string
-          date?: string
-          download_mb?: number | null
-          id?: string
-          total_mb?: number | null
-          upload_mb?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "data_usage_customer_account_id_fkey"
-            columns: ["customer_account_id"]
-            isOneToOne: false
-            referencedRelation: "customer_accounts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      failed_login_attempts: {
-        Row: {
-          attempt_time: string | null
-          email: string
-          id: string
-          ip_address: unknown
-          user_agent: string | null
-        }
-        Insert: {
-          attempt_time?: string | null
-          email: string
-          id?: string
-          ip_address: unknown
-          user_agent?: string | null
-        }
-        Update: {
-          attempt_time?: string | null
-          email?: string
-          id?: string
-          ip_address?: unknown
-          user_agent?: string | null
-        }
-        Relationships: []
-      }
-      notification_preferences: {
-        Row: {
-          created_at: string | null
-          email_notifications: boolean | null
-          id: string
-          payment_reminders: boolean | null
-          security_alerts: boolean | null
-          sms_notifications: boolean | null
-          updated_at: string | null
-          usage_alerts: boolean | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          email_notifications?: boolean | null
-          id?: string
-          payment_reminders?: boolean | null
-          security_alerts?: boolean | null
-          sms_notifications?: boolean | null
-          updated_at?: string | null
-          usage_alerts?: boolean | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          email_notifications?: boolean | null
-          id?: string
-          payment_reminders?: boolean | null
-          security_alerts?: boolean | null
-          sms_notifications?: boolean | null
-          updated_at?: string | null
-          usage_alerts?: boolean | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      packages: {
-        Row: {
-          bandwidth_cap: number | null
-          created_at: string
-          features: string[] | null
-          id: string
-          name: string
-          price: number
-          speed: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          bandwidth_cap?: number | null
-          created_at?: string
-          features?: string[] | null
-          id?: string
-          name: string
-          price: number
-          speed: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          bandwidth_cap?: number | null
-          created_at?: string
-          features?: string[] | null
-          id?: string
-          name?: string
-          price?: number
-          speed?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      password_change_logs: {
-        Row: {
-          changed_at: string | null
-          id: string
-          ip_address: unknown | null
-          password_type: string
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          changed_at?: string | null
-          id?: string
-          ip_address?: unknown | null
-          password_type: string
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          changed_at?: string | null
-          id?: string
-          ip_address?: unknown | null
-          password_type?: string
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      payment_notifications: {
-        Row: {
+          amount: number
+          billing_period_end: string | null
+          billing_period_start: string | null
           created_at: string
           customer_id: string | null
-          error_message: string | null
+          due_date: string
           id: string
-          message: string
-          payment_id: string | null
-          phone_number: string
-          sent_at: string | null
+          invoice_number: string
+          payment_method: string | null
           status: string
+          subscription_id: string | null
+          tax_amount: number | null
+          total_amount: number
+          usage_details: Json | null
         }
         Insert: {
+          amount: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
           created_at?: string
           customer_id?: string | null
-          error_message?: string | null
+          due_date: string
           id?: string
-          message: string
-          payment_id?: string | null
-          phone_number: string
-          sent_at?: string | null
+          invoice_number: string
+          payment_method?: string | null
           status?: string
+          subscription_id?: string | null
+          tax_amount?: number | null
+          total_amount: number
+          usage_details?: Json | null
         }
         Update: {
+          amount?: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
           created_at?: string
           customer_id?: string | null
-          error_message?: string | null
+          due_date?: string
           id?: string
-          message?: string
-          payment_id?: string | null
-          phone_number?: string
-          sent_at?: string | null
+          invoice_number?: string
+          payment_method?: string | null
           status?: string
+          subscription_id?: string | null
+          tax_amount?: number | null
+          total_amount?: number
+          usage_details?: Json | null
         }
         Relationships: [
           {
-            foreignKeyName: "payment_notifications_customer_id_fkey"
+            foreignKeyName: "invoices_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
-            referencedRelation: "customers"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payment_notifications_payment_id_fkey"
-            columns: ["payment_id"]
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
             isOneToOne: false
-            referencedRelation: "payments"
+            referencedRelation: "customer_subscriptions"
             referencedColumns: ["id"]
           },
         ]
       }
-      payment_queue: {
+      network_logs: {
         Row: {
-          account_reference: string | null
-          amount: number
           created_at: string
           error_message: string | null
+          event_type: string
           id: string
-          payment_source: string
-          phone_number: string
-          processed_at: string | null
-          raw_data: Json | null
+          node_id: string | null
+          response_time_ms: number | null
           status: string
-          transaction_id: string
         }
         Insert: {
-          account_reference?: string | null
-          amount: number
           created_at?: string
           error_message?: string | null
+          event_type: string
           id?: string
-          payment_source: string
-          phone_number: string
-          processed_at?: string | null
-          raw_data?: Json | null
-          status?: string
-          transaction_id: string
+          node_id?: string | null
+          response_time_ms?: number | null
+          status: string
         }
         Update: {
-          account_reference?: string | null
-          amount?: number
           created_at?: string
           error_message?: string | null
+          event_type?: string
           id?: string
-          payment_source?: string
-          phone_number?: string
-          processed_at?: string | null
-          raw_data?: Json | null
+          node_id?: string | null
+          response_time_ms?: number | null
           status?: string
-          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "network_logs_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "network_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      network_nodes: {
+        Row: {
+          coordinates: unknown | null
+          created_at: string
+          id: string
+          ip_address: unknown
+          last_ping: string | null
+          location: string
+          name: string
+          node_type: string
+          response_time_ms: number | null
+          status: string
+          uptime_percentage: number | null
+        }
+        Insert: {
+          coordinates?: unknown | null
+          created_at?: string
+          id?: string
+          ip_address: unknown
+          last_ping?: string | null
+          location: string
+          name: string
+          node_type: string
+          response_time_ms?: number | null
+          status?: string
+          uptime_percentage?: number | null
+        }
+        Update: {
+          coordinates?: unknown | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          last_ping?: string | null
+          location?: string
+          name?: string
+          node_type?: string
+          response_time_ms?: number | null
+          status?: string
+          uptime_percentage?: number | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          priority: string | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          priority?: string | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          priority?: string | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_methods: {
+        Row: {
+          account_number: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          metadata: Json | null
+          method_type: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          metadata?: Json | null
+          method_type: string
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          metadata?: Json | null
+          method_type?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          customer_id: string
+          failure_reason: string | null
+          gateway_reference: string | null
+          gateway_response: Json | null
+          id: string
+          invoice_id: string | null
+          payment_method_id: string | null
+          processed_at: string | null
+          status: string
+          transaction_type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          customer_id: string
+          failure_reason?: string | null
+          gateway_reference?: string | null
+          gateway_response?: Json | null
+          id?: string
+          invoice_id?: string | null
+          payment_method_id?: string | null
+          processed_at?: string | null
+          status: string
+          transaction_type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          customer_id?: string
+          failure_reason?: string | null
+          gateway_reference?: string | null
+          gateway_response?: Json | null
+          id?: string
+          invoice_id?: string | null
+          payment_method_id?: string | null
+          processed_at?: string | null
+          status?: string
+          transaction_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
       payments: {
         Row: {
-          account_reference: string | null
           amount: number
           created_at: string
+          currency: string | null
           customer_id: string | null
+          gateway_response: Json | null
           id: string
-          mpesa_receipt_number: string | null
-          payment_date: string
+          invoice_id: string | null
           payment_method: string
-          payment_source: string | null
-          phone_number: string | null
           processed_at: string | null
-          reconciliation_status: string | null
           status: string
           transaction_id: string | null
         }
         Insert: {
-          account_reference?: string | null
           amount: number
           created_at?: string
+          currency?: string | null
           customer_id?: string | null
+          gateway_response?: Json | null
           id?: string
-          mpesa_receipt_number?: string | null
-          payment_date?: string
+          invoice_id?: string | null
           payment_method: string
-          payment_source?: string | null
-          phone_number?: string | null
           processed_at?: string | null
-          reconciliation_status?: string | null
           status?: string
           transaction_id?: string | null
         }
         Update: {
-          account_reference?: string | null
           amount?: number
           created_at?: string
+          currency?: string | null
           customer_id?: string | null
+          gateway_response?: Json | null
           id?: string
-          mpesa_receipt_number?: string | null
-          payment_date?: string
+          invoice_id?: string | null
           payment_method?: string
-          payment_source?: string | null
-          phone_number?: string | null
           processed_at?: string | null
-          reconciliation_status?: string | null
           status?: string
           transaction_id?: string | null
         }
@@ -578,335 +555,407 @@ export type Database = {
             foreignKeyName: "payments_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
-            referencedRelation: "customers"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
       }
       profiles: {
         Row: {
+          account_status: Database["public"]["Enums"]["account_status"]
           address: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
+          created_at: string
+          email: string
+          email_verified: boolean | null
+          full_name: string
           id: string
-          is_active: boolean | null
-          phone: number | null
-          promoted_at: string | null
-          promoted_by: string | null
-          role: string | null
-          updated_at: string | null
+          last_login: string | null
+          onboarding_completed: boolean | null
+          phone: string | null
+          phone_verified: boolean | null
+          preferred_payment_method: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          two_factor_enabled: boolean | null
+          updated_at: string
         }
         Insert: {
+          account_status?: Database["public"]["Enums"]["account_status"]
           address?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
+          created_at?: string
+          email: string
+          email_verified?: boolean | null
+          full_name: string
           id: string
-          is_active?: boolean | null
-          phone?: number | null
-          promoted_at?: string | null
-          promoted_by?: string | null
-          role?: string | null
-          updated_at?: string | null
+          last_login?: string | null
+          onboarding_completed?: boolean | null
+          phone?: string | null
+          phone_verified?: boolean | null
+          preferred_payment_method?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          two_factor_enabled?: boolean | null
+          updated_at?: string
         }
         Update: {
+          account_status?: Database["public"]["Enums"]["account_status"]
           address?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
+          created_at?: string
+          email?: string
+          email_verified?: boolean | null
+          full_name?: string
           id?: string
-          is_active?: boolean | null
-          phone?: number | null
-          promoted_at?: string | null
-          promoted_by?: string | null
-          role?: string | null
-          updated_at?: string | null
+          last_login?: string | null
+          onboarding_completed?: boolean | null
+          phone?: string | null
+          phone_verified?: boolean | null
+          preferred_payment_method?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          two_factor_enabled?: boolean | null
+          updated_at?: string
         }
         Relationships: []
       }
-      security_events: {
+      real_time_notifications: {
         Row: {
-          created_at: string | null
-          description: string
+          channel: string
+          created_at: string
+          data: Json | null
           event_type: string
+          expires_at: string | null
           id: string
-          ip_address: unknown | null
-          severity: string | null
-          user_agent: string | null
+          is_broadcast: boolean | null
+          is_read: boolean | null
+          message: string
+          priority: string | null
+          title: string
           user_id: string | null
         }
         Insert: {
-          created_at?: string | null
-          description: string
+          channel: string
+          created_at?: string
+          data?: Json | null
           event_type: string
+          expires_at?: string | null
           id?: string
-          ip_address?: unknown | null
-          severity?: string | null
-          user_agent?: string | null
+          is_broadcast?: boolean | null
+          is_read?: boolean | null
+          message: string
+          priority?: string | null
+          title: string
           user_id?: string | null
         }
         Update: {
-          created_at?: string | null
-          description?: string
+          channel?: string
+          created_at?: string
+          data?: Json | null
           event_type?: string
+          expires_at?: string | null
           id?: string
-          ip_address?: unknown | null
-          severity?: string | null
-          user_agent?: string | null
+          is_broadcast?: boolean | null
+          is_read?: boolean | null
+          message?: string
+          priority?: string | null
+          title?: string
           user_id?: string | null
         }
         Relationships: []
-      }
-      service_requests: {
-        Row: {
-          admin_notes: string | null
-          created_at: string | null
-          current_bandwidth: number | null
-          current_package_id: string | null
-          customer_account_id: string
-          id: string
-          processed_at: string | null
-          processed_by: string | null
-          reason: string | null
-          request_type: string
-          requested_bandwidth: number | null
-          requested_package_id: string | null
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          admin_notes?: string | null
-          created_at?: string | null
-          current_bandwidth?: number | null
-          current_package_id?: string | null
-          customer_account_id: string
-          id?: string
-          processed_at?: string | null
-          processed_by?: string | null
-          reason?: string | null
-          request_type: string
-          requested_bandwidth?: number | null
-          requested_package_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          admin_notes?: string | null
-          created_at?: string | null
-          current_bandwidth?: number | null
-          current_package_id?: string | null
-          customer_account_id?: string
-          id?: string
-          processed_at?: string | null
-          processed_by?: string | null
-          reason?: string | null
-          request_type?: string
-          requested_bandwidth?: number | null
-          requested_package_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_requests_current_package_id_fkey"
-            columns: ["current_package_id"]
-            isOneToOne: false
-            referencedRelation: "packages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_requests_customer_account_id_fkey"
-            columns: ["customer_account_id"]
-            isOneToOne: false
-            referencedRelation: "customer_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_requests_requested_package_id_fkey"
-            columns: ["requested_package_id"]
-            isOneToOne: false
-            referencedRelation: "packages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sms_notifications: {
-        Row: {
-          created_at: string
-          customer_id: string | null
-          id: string
-          message: string
-          phone_number: string
-          sent_at: string | null
-          status: string
-          type: string
-        }
-        Insert: {
-          created_at?: string
-          customer_id?: string | null
-          id?: string
-          message: string
-          phone_number: string
-          sent_at?: string | null
-          status?: string
-          type: string
-        }
-        Update: {
-          created_at?: string
-          customer_id?: string | null
-          id?: string
-          message?: string
-          phone_number?: string
-          sent_at?: string | null
-          status?: string
-          type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sms_notifications_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       support_tickets: {
         Row: {
           assigned_to: string | null
+          category: Database["public"]["Enums"]["ticket_category"]
           created_at: string
           customer_id: string | null
-          description: string | null
+          customer_satisfaction_rating: number | null
+          description: string
+          escalated_at: string | null
           id: string
-          priority: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          resolution: string | null
           resolved_at: string | null
-          status: string
-          title: string
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
           updated_at: string
         }
         Insert: {
           assigned_to?: string | null
+          category: Database["public"]["Enums"]["ticket_category"]
           created_at?: string
           customer_id?: string | null
-          description?: string | null
+          customer_satisfaction_rating?: number | null
+          description: string
+          escalated_at?: string | null
           id?: string
-          priority?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolution?: string | null
           resolved_at?: string | null
-          status?: string
-          title: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
           updated_at?: string
         }
         Update: {
           assigned_to?: string | null
+          category?: Database["public"]["Enums"]["ticket_category"]
           created_at?: string
           customer_id?: string | null
-          description?: string | null
+          customer_satisfaction_rating?: number | null
+          description?: string
+          escalated_at?: string | null
           id?: string
-          priority?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolution?: string | null
           resolved_at?: string | null
-          status?: string
-          title?: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject?: string
+          ticket_number?: string
           updated_at?: string
         }
         Relationships: [
           {
+            foreignKeyName: "support_tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "support_tickets_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
-            referencedRelation: "customers"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      user_sessions: {
+      system_metrics: {
         Row: {
-          created_at: string | null
-          expires_at: string | null
           id: string
-          ip_address: unknown | null
-          is_active: boolean | null
-          last_activity: string | null
-          session_token: string
-          user_agent: string | null
-          user_id: string
+          metric_name: string
+          metric_type: string
+          recorded_at: string
+          tags: Json | null
+          unit: string | null
+          value: number
         }
         Insert: {
-          created_at?: string | null
-          expires_at?: string | null
           id?: string
-          ip_address?: unknown | null
-          is_active?: boolean | null
-          last_activity?: string | null
-          session_token: string
-          user_agent?: string | null
-          user_id: string
+          metric_name: string
+          metric_type: string
+          recorded_at?: string
+          tags?: Json | null
+          unit?: string | null
+          value: number
         }
         Update: {
-          created_at?: string | null
-          expires_at?: string | null
           id?: string
-          ip_address?: unknown | null
-          is_active?: boolean | null
-          last_activity?: string | null
-          session_token?: string
-          user_agent?: string | null
-          user_id?: string
+          metric_name?: string
+          metric_type?: string
+          recorded_at?: string
+          tags?: Json | null
+          unit?: string | null
+          value?: number
         }
         Relationships: []
+      }
+      ticket_messages: {
+        Row: {
+          attachments: Json | null
+          created_at: string
+          id: string
+          is_internal_note: boolean | null
+          message: string
+          sender_id: string | null
+          ticket_id: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean | null
+          message: string
+          sender_id?: string | null
+          ticket_id?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean | null
+          message?: string
+          sender_id?: string | null
+          ticket_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usage_metrics: {
+        Row: {
+          average_speed_mbps: number | null
+          created_at: string
+          customer_id: string | null
+          date: string
+          download_mb: number | null
+          id: string
+          peak_speed_mbps: number | null
+          session_duration_minutes: number | null
+          subscription_id: string | null
+          upload_mb: number | null
+        }
+        Insert: {
+          average_speed_mbps?: number | null
+          created_at?: string
+          customer_id?: string | null
+          date: string
+          download_mb?: number | null
+          id?: string
+          peak_speed_mbps?: number | null
+          session_duration_minutes?: number | null
+          subscription_id?: string | null
+          upload_mb?: number | null
+        }
+        Update: {
+          average_speed_mbps?: number | null
+          created_at?: string
+          customer_id?: string | null
+          date?: string
+          download_mb?: number | null
+          id?: string
+          peak_speed_mbps?: number | null
+          session_duration_minutes?: number | null
+          subscription_id?: string | null
+          upload_mb?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_metrics_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usage_metrics_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vouchers: {
+        Row: {
+          applicable_packages: string[] | null
+          code: string
+          created_at: string
+          created_by: string | null
+          current_uses: number | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          type: string
+          valid_from: string
+          valid_until: string
+          value: number
+        }
+        Insert: {
+          applicable_packages?: string[] | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          type: string
+          valid_from?: string
+          valid_until: string
+          value: number
+        }
+        Update: {
+          applicable_packages?: string[] | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          type?: string
+          valid_from?: string
+          valid_until?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vouchers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      change_user_role: {
-        Args: { target_user_id: string; new_role: string; reason?: string }
-        Returns: boolean
-      }
-      check_rate_limit: {
-        Args: { p_email: string; p_ip_address: unknown }
-        Returns: boolean
-      }
-      get_admin_actions_with_profiles: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          id: string
-          admin_id: string
-          target_user_id: string
-          action_type: string
-          old_role: string
-          new_role: string
-          reason: string
-          created_at: string
-          admin_name: string
-          admin_email: string
-          target_name: string
-          target_email: string
-        }[]
-      }
-      get_current_user_role: {
+      generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
-      log_failed_login: {
-        Args: { p_email: string; p_ip_address: unknown; p_user_agent?: string }
-        Returns: undefined
-      }
-      log_security_event: {
-        Args: {
-          p_user_id: string
-          p_event_type: string
-          p_description: string
-          p_ip_address?: unknown
-          p_user_agent?: string
-          p_severity?: string
-        }
+      generate_ticket_number: {
+        Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      is_admin_or_support: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      account_status: "active" | "suspended" | "terminated" | "pending"
+      ticket_category:
+        | "network_issue"
+        | "payment"
+        | "billing"
+        | "technical_support"
+        | "installation"
+        | "equipment"
+      ticket_priority: "low" | "medium" | "high" | "critical"
+      ticket_status:
+        | "open"
+        | "in_progress"
+        | "waiting_customer"
+        | "resolved"
+        | "closed"
+      user_role: "customer" | "admin" | "support" | "technician" | "superadmin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1033,6 +1082,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_status: ["active", "suspended", "terminated", "pending"],
+      ticket_category: [
+        "network_issue",
+        "payment",
+        "billing",
+        "technical_support",
+        "installation",
+        "equipment",
+      ],
+      ticket_priority: ["low", "medium", "high", "critical"],
+      ticket_status: [
+        "open",
+        "in_progress",
+        "waiting_customer",
+        "resolved",
+        "closed",
+      ],
+      user_role: ["customer", "admin", "support", "technician", "superadmin"],
+    },
   },
 } as const
