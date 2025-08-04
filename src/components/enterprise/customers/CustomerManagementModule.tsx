@@ -114,9 +114,10 @@ export const CustomerManagementModule: React.FC = () => {
 
   const handleStatusChange = async (customerId: string, newStatus: string) => {
     try {
+      // Note: Temporarily using generic update due to type mismatch
       const { error } = await supabase
         .from('profiles')
-        .update({ account_status: newStatus })
+        .update({ account_status: newStatus } as any)
         .eq('id', customerId);
 
       if (error) throw error;
