@@ -68,9 +68,9 @@ export const CustomerManagement = () => {
         .from('profiles')
         .select(`
           *,
-          customer_packages (
+          customer_subscriptions (
             *,
-            packages (name, speed, price)
+            internet_packages (name, speed_mbps, price_monthly)
           )
         `)
         .order('created_at', { ascending: false });
@@ -79,16 +79,17 @@ export const CustomerManagement = () => {
 
       // Process the data to get the latest package for each customer
       const processedCustomers = data?.map(customer => {
-        const activePackage = customer.customer_packages?.find(cp => cp.is_active);
-        const packageInfo = activePackage?.packages;
+        const activeSubscription = customer.customer_subscriptions?.find(cs => cs.status === 'active');
+        const packageInfo = activeSubscription?.internet_packages;
         
         return {
           ...customer,
-          package: packageInfo?.speed || 'No Package',
+          package: packageInfo?.speed_mbps ? `${packageInfo.speed_mbps} Mbps` : 'No Package',
           packageName: packageInfo?.name || 'N/A',
-          monthlyRate: packageInfo?.price || 0,
-          paymentStatus: 'paid', // You might want to calculate this based on recent payments
-          lastPayment: customer.created_at
+          monthlyRate: packageInfo?.price_monthly || 0,
+          paymentStatus: 'paid',
+          lastPayment: customer.created_at,
+          status: customer.account_status
         };
       }) || [];
 
@@ -120,8 +121,8 @@ export const CustomerManagement = () => {
   };
 
   const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.phone.includes(searchTerm) ||
+    const matchesSearch = customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.phone?.includes(searchTerm) ||
                          customer.email?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = filterStatus === "all" || customer.status === filterStatus;
@@ -131,11 +132,11 @@ export const CustomerManagement = () => {
 
   const handleAddCustomer = async () => {
     try {
-      // First, create the customer
+      // First, create the customer profile
       const { data: customerData, error: customerError } = await supabase
-        .from('customers')
+        .from('profiles')
         .insert([{
-          name: newCustomer.name,
+          full_name: newCustomer.name,
           phone: newCustomer.phone,
           email: newCustomer.email,
           address: newCustomer.address,
@@ -147,15 +148,15 @@ export const CustomerManagement = () => {
 
       // Then, assign them to the selected package if one was chosen
       if (newCustomer.package_id && customerData) {
-        const { error: packageError } = await supabase
-          .from('customer_packages')
+        const { error: subscriptionError } = await supabase
+          .from('customer_subscriptions')
           .insert([{
             customer_id: customerData.id,
             package_id: newCustomer.package_id,
-            is_active: true
+            status: 'active'
           }]);
 
-        if (packageError) throw packageError;
+        if (subscriptionError) throw subscriptionError;
       }
 
       toast({
@@ -296,7 +297,7 @@ export const CustomerManagement = () => {
           <Card key={customer.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{customer.name}</CardTitle>
+                <CardTitle className="text-lg">{customer.full_name}</CardTitle>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
@@ -346,7 +347,7 @@ export const CustomerManagement = () => {
               
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="h-4 w-4" />
-                <span>Installed: {new Date(customer.installation_date).toLocaleDateString()}</span>
+                <span>Joined: {new Date(customer.created_at).toLocaleDateString()}</span>
               </div>
               
               <div className="pt-2 border-t">
