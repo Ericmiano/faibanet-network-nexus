@@ -36,14 +36,16 @@ export const DashboardOverview = () => {
     try {
       // Fetch total customers
       const { data: customers } = await supabase
-        .from('customers')
-        .select('*');
+        .from('profiles')
+        .select('*')
+        .eq('role', 'customer');
 
       // Fetch active connections (assuming active status means connected)
       const { data: activeCustomers } = await supabase
-        .from('customers')
+        .from('profiles')
         .select('*')
-        .eq('status', 'active');
+        .eq('role', 'customer')
+        .eq('account_status', 'active');
 
       // Fetch monthly revenue (current month)
       const currentMonth = new Date();
