@@ -170,6 +170,33 @@ export type Database = {
           },
         ]
       }
+      failed_login_attempts: {
+        Row: {
+          attempt_time: string
+          email: string
+          id: string
+          ip_address: unknown
+          reason: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          attempt_time?: string
+          email: string
+          id?: string
+          ip_address: unknown
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          attempt_time?: string
+          email?: string
+          id?: string
+          ip_address?: unknown
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       internet_packages: {
         Row: {
           created_at: string
@@ -420,6 +447,45 @@ export type Database = {
           },
         ]
       }
+      password_policies: {
+        Row: {
+          created_at: string
+          history_count: number | null
+          id: string
+          max_age_days: number | null
+          min_length: number
+          require_lowercase: boolean
+          require_numbers: boolean
+          require_symbols: boolean
+          require_uppercase: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          history_count?: number | null
+          id?: string
+          max_age_days?: number | null
+          min_length?: number
+          require_lowercase?: boolean
+          require_numbers?: boolean
+          require_symbols?: boolean
+          require_uppercase?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          history_count?: number | null
+          id?: string
+          max_age_days?: number | null
+          min_length?: number
+          require_lowercase?: boolean
+          require_numbers?: boolean
+          require_symbols?: boolean
+          require_uppercase?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           account_number: string | null
@@ -666,6 +732,42 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events: {
+        Row: {
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           assigned_to: string | null
@@ -864,6 +966,42 @@ export type Database = {
           },
         ]
       }
+      user_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean
+          last_activity: string
+          session_token: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          session_token: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       vouchers: {
         Row: {
           applicable_packages: string[] | null
@@ -922,6 +1060,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: { p_email: string; p_ip_address: unknown }
+        Returns: boolean
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -937,6 +1079,19 @@ export type Database = {
       is_admin_or_support: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      log_failed_login: {
+        Args: { p_email: string; p_ip_address: unknown; p_user_agent: string }
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          p_user_id: string
+          p_event_type: string
+          p_description: string
+          p_severity?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
