@@ -49,7 +49,7 @@ export const PaymentIntegration: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPaymentMethods(data || []);
+      setPaymentMethods((data || []) as PaymentMethod[]);
     } catch (error) {
       console.error('Error fetching payment methods:', error);
     }
@@ -64,7 +64,7 @@ export const PaymentIntegration: React.FC = () => {
         .limit(10);
 
       if (error) throw error;
-      setTransactions(data || []);
+      setTransactions((data || []) as PaymentTransaction[]);
     } catch (error) {
       console.error('Error fetching transactions:', error);
     }

@@ -62,8 +62,8 @@ export const UserTable: React.FC<UserTableProps> = ({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                        {user.is_active ? 'Active' : 'Inactive'}
+                      <Badge variant={user.account_status === 'active' ? 'default' : 'secondary'}>
+                        {user.account_status}
                       </Badge>
                     </TableCell>
                     <TableCell>

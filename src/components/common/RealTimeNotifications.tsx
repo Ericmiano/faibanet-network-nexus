@@ -60,7 +60,7 @@ export const RealTimeNotifications: React.FC = () => {
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data || []) as RealTimeNotification[]);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {

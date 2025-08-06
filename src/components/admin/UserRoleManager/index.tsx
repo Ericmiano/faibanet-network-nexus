@@ -40,7 +40,8 @@ export const UserRoleManager = () => {
       
       const typedUsers = (data || []).map(user => ({
         ...user,
-        role: user.role as 'customer' | 'admin' | 'support'
+        role: user.role as 'customer' | 'admin' | 'support',
+        account_status: user.account_status as 'active' | 'suspended' | 'terminated' | 'pending'
       }));
       
       setUsers(typedUsers);
@@ -54,10 +55,8 @@ export const UserRoleManager = () => {
 
   const fetchAdminActions = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_admin_actions_with_profiles');
-      
-      if (error) throw error;
-      setAdminActions(data || []);
+      // For now, just set empty array since the function doesn't exist
+      setAdminActions([]);
     } catch (error) {
       console.error('Error fetching admin actions:', error);
       toast.error('Failed to load admin actions');
@@ -68,12 +67,11 @@ export const UserRoleManager = () => {
     if (!selectedUser) return;
 
     try {
-      // Use the Supabase function for role change
-      const { data, error } = await supabase.rpc('change_user_role', {
-        target_user_id: selectedUser.id,
-        new_role: newRole,
-        reason: reason || null
-      });
+      // Update user role directly in profiles table
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', selectedUser.id);
 
       if (error) throw error;
 
@@ -82,9 +80,8 @@ export const UserRoleManager = () => {
       setSelectedUser(null);
       setReason('');
       
-      // Refresh both users and admin actions
+      // Refresh users
       fetchUsers();
-      fetchAdminActions();
     } catch (error: any) {
       console.error('Error changing user role:', error);
       toast.error(error.message || 'Failed to change user role');

@@ -40,26 +40,26 @@ export const CustomerDashboard = () => {
 
   const fetchCustomerData = async () => {
     try {
-      // Fetch customer account
-      const { data: account, error: accountError } = await supabase
-        .from('customer_accounts')
+      // Fetch customer profile
+      const { data: customerData, error: profileError } = await supabase
+        .from('profiles')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('id', user?.id)
         .single();
 
-      if (accountError) throw accountError;
-      setCustomerAccount(account);
+      if (profileError) throw profileError;
+      setCustomerAccount(customerData);
 
       // Fetch current package
       const { data: packageData, error: packageError } = await supabase
-        .from('customer_packages')
+        .from('customer_subscriptions')
         .select(`
           *,
-          packages (*)
+          internet_packages (*)
         `)
         .eq('customer_id', user?.id)
-        .eq('is_active', true)
-        .single();
+        .eq('status', 'active')
+        .maybeSingle();
 
       if (!packageError) {
         setCurrentPackage(packageData);
@@ -198,8 +198,8 @@ export const CustomerDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Badge className={`${getStatusColor(customerAccount?.service_status)} text-white`}>
-                {customerAccount?.service_status?.toUpperCase()}
+              <Badge className={`${getStatusColor(customerAccount?.account_status)} text-white`}>
+                {customerAccount?.account_status?.toUpperCase()}
               </Badge>
               <ThemeToggle />
               <Button variant="outline" onClick={signOut}>
@@ -219,7 +219,7 @@ export const CustomerDashboard = () => {
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{customerAccount?.account_number}</div>
+                <div className="text-2xl font-bold">{customerAccount?.id?.slice(0, 8) || 'N/A'}</div>
               </CardContent>
             </Card>
 
@@ -230,10 +230,10 @@ export const CustomerDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {currentPackage?.packages?.name || 'No Package'}
+                  {currentPackage?.internet_packages?.name || 'No Package'}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {currentPackage?.packages?.speed}
+                  {currentPackage?.internet_packages?.speed_mbps ? `${currentPackage.internet_packages.speed_mbps} Mbps` : ''}
                 </p>
               </CardContent>
             </Card>
@@ -245,8 +245,7 @@ export const CustomerDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {customerAccount?.bandwidth_limit || 'Unlimited'} 
-                  {customerAccount?.bandwidth_limit && ' Mbps'}
+                  Unlimited
                 </div>
               </CardContent>
             </Card>

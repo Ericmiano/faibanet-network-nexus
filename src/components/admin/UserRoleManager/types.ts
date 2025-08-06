@@ -4,7 +4,7 @@ export interface Profile {
   full_name: string;
   email: string;
   role: 'customer' | 'admin' | 'support';
-  is_active: boolean;
+  account_status: 'active' | 'suspended' | 'terminated' | 'pending';
   created_at: string;
   promoted_at?: string;
   promoted_by?: string;
