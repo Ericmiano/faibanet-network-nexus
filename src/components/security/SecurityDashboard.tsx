@@ -92,15 +92,15 @@ export const SecurityDashboard = () => {
       ]);
 
       if (eventsResult.data) {
-        setSecurityEvents(eventsResult.data);
+        setSecurityEvents(eventsResult.data as any);
       }
 
       if (attemptsResult.data) {
-        setFailedAttempts(attemptsResult.data);
+        setFailedAttempts(attemptsResult.data as any);
       }
 
       if (sessionsResult.data) {
-        setActiveSessions(sessionsResult.data);
+        setActiveSessions(sessionsResult.data as any);
       }
 
       // Calculate stats

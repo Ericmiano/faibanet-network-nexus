@@ -30,29 +30,30 @@ export const UsageMonitor: React.FC<UsageMonitorProps> = ({ customerAccountId })
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - parseInt(period));
 
+      // Use usage_metrics table instead
       const { data, error } = await supabase
-        .from('data_usage')
+        .from('usage_metrics')
         .select('*')
-        .eq('customer_account_id', customerAccountId)
+        .eq('customer_id', customerAccountId)
         .gte('date', daysAgo.toISOString().split('T')[0])
         .order('date', { ascending: true });
 
       if (error) throw error;
 
-      const formattedData = data.map(item => ({
+      const formattedData = data?.map(item => ({
         date: new Date(item.date).toLocaleDateString(),
         upload: item.upload_mb / 1024, // Convert to GB
         download: item.download_mb / 1024,
-        total: item.total_mb / 1024
-      }));
+        total: (item.upload_mb + item.download_mb) / 1024
+      })) || [];
 
       setUsageData(formattedData);
 
       // Calculate totals
-      const totals = data.reduce((acc, curr) => ({
+      const totals = (data || []).reduce((acc, curr) => ({
         upload: acc.upload + (curr.upload_mb || 0),
         download: acc.download + (curr.download_mb || 0),
-        total: acc.total + (curr.total_mb || 0)
+        total: acc.total + ((curr.upload_mb || 0) + (curr.download_mb || 0))
       }), { upload: 0, download: 0, total: 0 });
 
       setTotalUsage(totals);

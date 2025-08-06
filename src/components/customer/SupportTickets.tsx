@@ -56,9 +56,11 @@ export const SupportTickets: React.FC<SupportTicketsProps> = ({ customerId }) =>
         .from('support_tickets')
         .insert({
           customer_id: customerId,
-          title: newTicket.title,
+          subject: newTicket.title,
           description: newTicket.description,
-          priority: newTicket.priority
+          priority: newTicket.priority as 'low' | 'medium' | 'high' | 'critical',
+          category: 'technical_support' as const,
+          ticket_number: `TKT-${Date.now()}`
         });
 
       if (error) throw error;
@@ -104,7 +106,7 @@ export const SupportTickets: React.FC<SupportTicketsProps> = ({ customerId }) =>
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent':
+      case 'critical':
         return 'bg-red-500';
       case 'high':
         return 'bg-orange-500';
@@ -169,7 +171,7 @@ export const SupportTickets: React.FC<SupportTicketsProps> = ({ customerId }) =>
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -203,7 +205,7 @@ export const SupportTickets: React.FC<SupportTicketsProps> = ({ customerId }) =>
                 <div key={ticket.id} className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <h3 className="font-medium">{ticket.title}</h3>
+                      <h3 className="font-medium">{ticket.subject}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
                         {ticket.description}
                       </p>
