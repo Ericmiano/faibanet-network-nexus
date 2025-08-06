@@ -94,12 +94,12 @@ export const EnhancedDashboard = () => {
       setError(null);
 
       const [customersResult, paymentsResult, ticketsResult] = await Promise.all([
-        supabase.from('customers').select('*'),
+        supabase.from('profiles').select('*').eq('role', 'customer'),
         supabase
           .from('payments')
-          .select('amount, payment_date, status')
+          .select('amount, created_at, status')
           .eq('status', 'completed')
-          .gte('payment_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
         supabase
           .from('support_tickets')
           .select('*')
@@ -115,7 +115,7 @@ export const EnhancedDashboard = () => {
       const tickets = ticketsResult.data || [];
 
       // Calculate stats
-      const activeCustomers = customers.filter(c => c.status === 'active');
+      const activeCustomers = customers.filter(c => c.account_status === 'active');
       const monthlyRev = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
       
       // Calculate new customers this month
@@ -128,7 +128,7 @@ export const EnhancedDashboard = () => {
       ).length;
 
       const recentPaymentsCount = payments.filter(p => {
-        const paymentDate = new Date(p.payment_date);
+        const paymentDate = new Date(p.created_at);
         const threeDaysAgo = new Date();
         threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
         return paymentDate >= threeDaysAgo;

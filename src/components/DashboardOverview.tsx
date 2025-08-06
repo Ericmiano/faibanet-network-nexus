@@ -52,8 +52,8 @@ export const DashboardOverview = () => {
       const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const { data: payments } = await supabase
         .from('payments')
-        .select('amount, payment_date')
-        .gte('payment_date', firstDay.toISOString())
+        .select('amount, created_at')
+        .gte('created_at', firstDay.toISOString())
         .eq('status', 'completed');
 
       // Fetch open tickets
@@ -70,24 +70,24 @@ export const DashboardOverview = () => {
         .from('payments')
         .select(`
           *,
-          customers (name)
+          profiles!customer_id (full_name)
         `)
-        .order('payment_date', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(4);
 
       // Fetch package distribution
-      const { data: customerPackages } = await supabase
-        .from('customer_packages')
+      const { data: customerSubscriptions } = await supabase
+        .from('customer_subscriptions')
         .select(`
           *,
-          packages (name, speed)
+          internet_packages (name, speed_mbps)
         `)
-        .eq('is_active', true);
+        .eq('status', 'active');
 
       // Process package distribution
       const packageCounts = {};
-      customerPackages?.forEach(cp => {
-        const packageName = cp.packages?.speed || 'Unknown';
+      customerSubscriptions?.forEach(cs => {
+        const packageName = cs.internet_packages?.name || 'Unknown';
         packageCounts[packageName] = (packageCounts[packageName] || 0) + 1;
       });
 
@@ -112,10 +112,10 @@ export const DashboardOverview = () => {
 
       // Process recent payments
       const processedPayments = recentPaymentsData?.map(payment => ({
-        customer: payment.customers?.name || 'Unknown',
+        customer: payment.profiles?.full_name || 'Unknown',
         amount: Number(payment.amount),
         package: payment.transaction_id?.includes('MP') ? 'M-Pesa' : payment.payment_method,
-        time: new Date(payment.payment_date).toLocaleString()
+        time: new Date(payment.created_at).toLocaleString()
       })) || [];
 
       setStats({

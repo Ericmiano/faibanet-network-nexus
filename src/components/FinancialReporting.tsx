@@ -70,18 +70,19 @@ export const FinancialReporting = () => {
           .from('payments')
           .select('*')
           .eq('status', 'completed')
-          .order('payment_date', { ascending: false }),
+          .order('created_at', { ascending: false }),
         supabase
-          .from('customer_packages')
+          .from('customer_subscriptions')
           .select(`
             *,
-            packages (name, price),
-            customers (name, status)
+            internet_packages (name, price_monthly),
+            profiles!customer_id (full_name, account_status)
           `)
-          .eq('is_active', true),
+          .eq('status', 'active'),
         supabase
-          .from('customers')
-          .select('status, created_at')
+          .from('profiles')
+          .select('account_status, created_at')
+          .eq('role', 'customer')
       ]);
 
       if (paymentsResult.error) throw paymentsResult.error;
@@ -89,17 +90,17 @@ export const FinancialReporting = () => {
       if (customersResult.error) throw customersResult.error;
 
       const payments = paymentsResult.data || [];
-      const customerPackages = customerPackagesResult.data || [];
+      const customerSubscriptions = customerPackagesResult.data || [];
       const customers = customersResult.data || [];
 
       // Process data with improved error handling
       const monthlyData = processMonthlyRevenue(payments);
-      const packageRevenue = processPackageRevenue(customerPackages, payments);
+      const packageRevenue = processPackageRevenue(customerSubscriptions, payments);
       const paymentMethodData = processPaymentMethods(payments);
       
       const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
       const totalCustomers = customers.length;
-      const activeCustomers = customers.filter(c => c.status === 'active').length;
+      const activeCustomers = customers.filter(c => c.account_status === 'active').length;
       
       // Calculate monthly stats
       const now = new Date();
@@ -108,18 +109,18 @@ export const FinancialReporting = () => {
       const yearStart = new Date(now.getFullYear(), 0, 1);
 
       const thisMonthRevenue = payments
-        .filter(p => new Date(p.payment_date) >= thisMonth)
+        .filter(p => new Date(p.created_at) >= thisMonth)
         .reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
       const lastMonthRevenue = payments
         .filter(p => {
-          const date = new Date(p.payment_date);
+          const date = new Date(p.created_at);
           return date >= lastMonth && date < thisMonth;
         })
         .reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
       const yearToDateRevenue = payments
-        .filter(p => new Date(p.payment_date) >= yearStart)
+        .filter(p => new Date(p.created_at) >= yearStart)
         .reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
       const outstandingPayments = Math.floor(Math.random() * 200000) + 50000; // Mock data
@@ -170,9 +171,9 @@ export const FinancialReporting = () => {
     const monthlyMap = new Map();
     
     payments.forEach(payment => {
-      if (!payment.payment_date) return;
+      if (!payment.created_at) return;
       
-      const date = new Date(payment.payment_date);
+      const date = new Date(payment.created_at);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       
@@ -196,7 +197,7 @@ export const FinancialReporting = () => {
     }));
   };
 
-  const processPackageRevenue = (customerPackages: any[], payments: any[]) => {
+  const processPackageRevenue = (customerSubscriptions: any[], payments: any[]) => {
     const packageMap = new Map();
     const colors = [
       'hsl(var(--primary))',
@@ -207,9 +208,9 @@ export const FinancialReporting = () => {
       'hsl(346, 87%, 43%)',
     ];
     
-    customerPackages.forEach((cp, index) => {
-      const packageName = cp.packages?.name || 'Unknown Package';
-      const packagePrice = Number(cp.packages?.price || 0);
+    customerSubscriptions.forEach((cs, index) => {
+      const packageName = cs.internet_packages?.name || 'Unknown Package';
+      const packagePrice = Number(cs.internet_packages?.price_monthly || 0);
       
       if (!packageMap.has(packageName)) {
         packageMap.set(packageName, { 

@@ -68,11 +68,13 @@ export const AdvancedCustomerManagement = () => {
         .from('profiles')
         .select(`
           *,
-          customer_packages (
-            packages (name, price)
+          customer_subscriptions (
+            *,
+            internet_packages (name, price_monthly)
           ),
-          payments (amount, payment_date)
-        `);
+          payments (amount, created_at)
+        `)
+        .eq('role', 'customer');
 
       if (customersData) {
         // Process customer data to add segments and lifetime value
@@ -80,7 +82,7 @@ export const AdvancedCustomerManagement = () => {
           const payments = customer.payments || [];
           const lifetimeValue = payments.reduce((sum, p) => sum + Number(p.amount), 0);
           const lastPayment = payments.length > 0 ? 
-            Math.max(...payments.map(p => new Date(p.payment_date).getTime())) : 0;
+            Math.max(...payments.map(p => new Date(p.created_at).getTime())) : 0;
           
           // Determine segment based on lifetime value
           let segment = "basic";
@@ -88,15 +90,16 @@ export const AdvancedCustomerManagement = () => {
           else if (lifetimeValue > 20000) segment = "standard";
           else if (lastPayment < Date.now() - (90 * 24 * 60 * 60 * 1000)) segment = "at-risk";
 
-          const packageName = customer.customer_packages?.[0]?.packages?.name || "No Package";
+          const activeSubscription = customer.customer_subscriptions?.find((sub: any) => sub.status === 'active');
+          const packageName = activeSubscription?.internet_packages?.name || "No Package";
 
           return {
             id: customer.id,
-            name: customer.name,
+            name: customer.full_name,
             email: customer.email || "",
             phone: customer.phone,
             address: customer.address || "",
-            status: customer.status,
+            status: customer.account_status,
             segment,
             lifetime_value: lifetimeValue,
             last_payment: lastPayment > 0 ? new Date(lastPayment).toISOString() : "",

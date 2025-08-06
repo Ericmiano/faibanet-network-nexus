@@ -111,7 +111,7 @@ export const CustomerManagement = () => {
       const { data, error } = await supabase
         .from('internet_packages')
         .select('*')
-        .eq('status', 'active');
+        .eq('is_active', true);
 
       if (error) throw error;
       setPackages(data || []);
@@ -132,41 +132,35 @@ export const CustomerManagement = () => {
 
   const handleAddCustomer = async () => {
     try {
-      // First, create the customer profile
-      const { data: customerData, error: customerError } = await supabase
-        .from('profiles')
-        .insert([{
-          full_name: newCustomer.name,
-          phone: newCustomer.phone,
-          email: newCustomer.email,
-          address: newCustomer.address,
-        }])
-        .select()
-        .single();
-
-      if (customerError) throw customerError;
-
-      // Then, assign them to the selected package if one was chosen
-      if (newCustomer.package_id && customerData) {
-        const { error: subscriptionError } = await supabase
-          .from('customer_subscriptions')
-          .insert([{
-            customer_id: customerData.id,
-            package_id: newCustomer.package_id,
-            status: 'active'
-          }]);
-
-        if (subscriptionError) throw subscriptionError;
-      }
-
+      // In demo mode, just show a toast
       toast({
-        title: "Success",
-        description: "Customer added successfully",
+        title: "Demo Mode",
+        description: "Customer would be added to the database in production.",
       });
+      
+      // Mock adding to the list for demo purposes
+      const newCustomerData = {
+        id: Date.now().toString(),
+        full_name: newCustomer.name,
+        email: newCustomer.email,
+        phone: newCustomer.phone,
+        address: newCustomer.address,
+        account_status: 'pending' as const,
+        role: 'customer' as const,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        email_verified: false,
+        phone_verified: false,
+        onboarding_completed: false,
+        two_factor_enabled: false,
+        last_login: null,
+        preferred_payment_method: null,
+        customer_subscriptions: []
+      };
 
+      setCustomers(prev => [newCustomerData, ...prev]);
       setNewCustomer({ name: "", phone: "", email: "", address: "", package_id: "" });
       setIsAddDialogOpen(false);
-      fetchCustomers(); // Refresh the list
     } catch (error) {
       console.error('Error adding customer:', error);
       toast({
@@ -251,7 +245,7 @@ export const CustomerManagement = () => {
                   <SelectContent>
                     {packages.map((pkg) => (
                       <SelectItem key={pkg.id} value={pkg.id}>
-                        {pkg.name} - {pkg.speed} - ${pkg.price}/month
+                        {pkg.name} - {pkg.speed_mbps} Mbps - {pkg.price_monthly}/month
                       </SelectItem>
                     ))}
                   </SelectContent>
