@@ -55,11 +55,11 @@ export const NetworkMonitoring = () => {
 
   const fetchNetworkData = async () => {
     try {
-      // Fetch connectivity logs for network monitoring
+      // Fetch network logs for network monitoring
       const { data: logs } = await supabase
-        .from('connectivity_logs')
+        .from('network_logs')
         .select('*')
-        .order('checked_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(100);
 
       // Generate mock network devices data

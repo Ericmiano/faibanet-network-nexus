@@ -39,12 +39,12 @@ export const PackageManagement = () => {
   const fetchPackages = async () => {
     try {
       const { data, error } = await supabase
-        .from('packages')
+        .from('internet_packages')
         .select(`
           *,
-          customer_packages (
+          customer_packages:customer_subscriptions(
             id,
-            customers (id)
+            customer_id
           )
         `);
 
@@ -54,7 +54,7 @@ export const PackageManagement = () => {
       const processedPackages = data?.map(pkg => ({
         ...pkg,
         customers: pkg.customer_packages?.length || 0,
-        price: Number(pkg.price)
+        price: Number(pkg.price_monthly)
       })) || [];
 
       setPackages(processedPackages);
@@ -73,13 +73,13 @@ export const PackageManagement = () => {
   const handleAddPackage = async () => {
     try {
       const { error } = await supabase
-        .from('packages')
+        .from('internet_packages')
         .insert([{
           name: newPackage.name,
-          speed: newPackage.speed,
-          price: parseFloat(newPackage.price),
+          speed_mbps: parseInt(newPackage.speed),
+          price_monthly: parseFloat(newPackage.price),
           features: newPackage.features.split('\n').filter(f => f.trim()),
-          status: 'active'
+          is_active: true
         }]);
 
       if (error) throw error;
@@ -105,7 +105,7 @@ export const PackageManagement = () => {
   const handleDeletePackage = async (id) => {
     try {
       const { error } = await supabase
-        .from('packages')
+        .from('internet_packages')
         .delete()
         .eq('id', id);
 
@@ -277,10 +277,10 @@ export const PackageManagement = () => {
               
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="font-mono">
-                  {pkg.speed}
+                  {pkg.speed_mbps} Mbps
                 </Badge>
-                <Badge variant={pkg.status === "active" ? "default" : "secondary"}>
-                  {pkg.status}
+                <Badge variant={pkg.is_active ? "default" : "secondary"}>
+                  {pkg.is_active ? "active" : "inactive"}
                 </Badge>
               </div>
             </CardHeader>

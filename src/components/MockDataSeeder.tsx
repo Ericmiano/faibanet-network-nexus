@@ -85,8 +85,13 @@ export const MockDataSeeder = () => {
         return;
       }
 
-      // 1. Seed Profiles
-      const mockProfiles = generateMockProfiles();
+      // 1. Seed Profiles - Note: profiles require auth users to exist first
+      // For demo purposes, we'll create profiles with generated UUIDs
+      const mockProfiles = generateMockProfiles().map(profile => ({
+        ...profile,
+        id: crypto.randomUUID()
+      }));
+      
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .insert(mockProfiles)

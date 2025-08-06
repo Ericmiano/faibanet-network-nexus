@@ -34,23 +34,19 @@ export const PaymentReconciliation = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch payment queue
+      // Fetch payment transactions as payment queue data
       const { data: queueData, error: queueError } = await supabase
-        .from('payment_queue')
+        .from('payment_transactions')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (queueError) throw queueError;
 
-      // Fetch notifications
+      // Fetch notifications as SMS notifications
       const { data: notificationData, error: notificationError } = await supabase
-        .from('payment_notifications')
-        .select(`
-          *,
-          customers (name, phone),
-          payments (amount, transaction_id)
-        `)
+        .from('notifications')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -135,10 +131,10 @@ export const PaymentReconciliation = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Transaction ID</TableHead>
-                <TableHead>Phone</TableHead>
+                <TableHead>Reference</TableHead>
+                <TableHead>Customer ID</TableHead>
                 <TableHead>Amount</TableHead>
-                <TableHead>Source</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Actions</TableHead>
@@ -147,12 +143,12 @@ export const PaymentReconciliation = () => {
             <TableBody>
               {queuedPayments.map((payment) => (
                 <TableRow key={payment.id}>
-                  <TableCell className="font-mono text-sm">{payment.transaction_id}</TableCell>
-                  <TableCell>{payment.phone_number}</TableCell>
+                  <TableCell className="font-mono text-sm">{payment.gateway_reference || payment.id}</TableCell>
+                  <TableCell>{payment.customer_id}</TableCell>
                   <TableCell className="font-bold text-green-600">
                     {formatKES(payment.amount)}
                   </TableCell>
-                  <TableCell>{payment.payment_source}</TableCell>
+                  <TableCell>{payment.transaction_type}</TableCell>
                   <TableCell>{getStatusBadge(payment.status)}</TableCell>
                   <TableCell>{new Date(payment.created_at).toLocaleString()}</TableCell>
                   <TableCell>
@@ -183,25 +179,27 @@ export const PaymentReconciliation = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Message</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Sent At</TableHead>
+                <TableHead>Created</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {notifications.map((notification) => (
                 <TableRow key={notification.id}>
-                  <TableCell>{notification.customers?.name || 'Unknown'}</TableCell>
-                  <TableCell>{notification.phone_number}</TableCell>
-                  <TableCell className="font-bold text-green-600">
-                    {notification.payments?.amount ? formatKES(notification.payments.amount) : 'N/A'}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(notification.status)}</TableCell>
+                  <TableCell>{notification.user_id || 'System'}</TableCell>
+                  <TableCell>{notification.title}</TableCell>
+                  <TableCell className="max-w-xs truncate">{notification.message}</TableCell>
                   <TableCell>
-                    {notification.sent_at ? new Date(notification.sent_at).toLocaleString() : 'Not sent'}
+                    <Badge variant={notification.is_read ? "default" : "secondary"}>
+                      {notification.is_read ? "Read" : "Unread"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(notification.created_at).toLocaleString()}
                   </TableCell>
                   <TableCell>
                     <Button size="sm" variant="outline">

@@ -70,19 +70,19 @@ export const PaymentTracking = () => {
         .from('payments')
         .select(`
           *,
-          customers (name, phone)
+          profiles!customer_id (full_name, phone)
         `)
-        .order('payment_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       const processedPayments = data?.map(payment => ({
         ...payment,
         amount: Number(payment.amount),
-        customer: payment.customers?.name || 'Unknown',
-        phone: payment.customers?.phone || '',
-        date: new Date(payment.payment_date).toLocaleDateString(),
-        time: new Date(payment.payment_date).toLocaleTimeString('en-US', { 
+        customer: payment.profiles?.full_name || 'Unknown',
+        phone: payment.profiles?.phone || '',
+        date: new Date(payment.created_at).toLocaleDateString(),
+        time: new Date(payment.created_at).toLocaleTimeString('en-US', { 
           hour12: false, 
           hour: '2-digit', 
           minute: '2-digit' 
@@ -105,9 +105,9 @@ export const PaymentTracking = () => {
   const fetchCustomers = async () => {
     try {
       const { data, error } = await supabase
-        .from('customers')
-        .select('id, name, phone')
-        .eq('status', 'active');
+        .from('profiles')
+        .select('id, full_name, phone')
+        .eq('account_status', 'active');
 
       if (error) throw error;
       setCustomers(data || []);
@@ -119,9 +119,9 @@ export const PaymentTracking = () => {
   const fetchPackages = async () => {
     try {
       const { data, error } = await supabase
-        .from('packages')
-        .select('id, name, speed')
-        .eq('status', 'active');
+        .from('internet_packages')
+        .select('id, name, speed_mbps')
+        .eq('is_active', true);
 
       if (error) throw error;
       setPackages(data || []);
@@ -142,9 +142,6 @@ export const PaymentTracking = () => {
 
   const handleAddPayment = async () => {
     try {
-      // Get customer phone number for the payment
-      const customer = customers.find(c => c.id === newPayment.customer_id);
-      
       const { error } = await supabase
         .from('payments')
         .insert([{
@@ -152,7 +149,6 @@ export const PaymentTracking = () => {
           amount: parseFloat(newPayment.amount),
           payment_method: newPayment.payment_method,
           transaction_id: newPayment.transaction_id,
-          phone_number: customer?.phone,
           status: 'completed'
         }]);
 
@@ -215,11 +211,11 @@ export const PaymentTracking = () => {
                     <SelectValue placeholder="Select customer" />
                   </SelectTrigger>
                   <SelectContent>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name} - {customer.phone}
-                      </SelectItem>
-                    ))}
+                     {customers.map((customer) => (
+                       <SelectItem key={customer.id} value={customer.id}>
+                         {customer.full_name} - {customer.phone}
+                       </SelectItem>
+                     ))}
                   </SelectContent>
                 </Select>
               </div>
